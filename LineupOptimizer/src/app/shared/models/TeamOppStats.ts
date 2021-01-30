@@ -1,0 +1,30 @@
+export class TeamOppStats {
+  rank: number = 0;
+  team: string = '';
+  games_played: number = 0.0;
+  minutes_played: number = 0.0;
+  points: number = 0.0;
+  rebounds: number = 0.0;
+  assists: number = 0.0;
+  steals: number = 0.0;
+  blocks: number = 0.0;
+  turnovers: number = 0.0;
+  personal_fouls: number = 0.0;
+  def_rebounds: number = 0.0;
+  off_rebounds: number = 0.0;
+  tot_rebounds: number = 0.0;
+  field_goals_made: number = 0.0;
+  field_goals_att: number = 0.0;
+  field_goal_pct: number = 0.0;
+  three_pts_made: number = 0.0;
+  three_pts_att: number = 0.0;
+  three_pt_pct: number = 0.0;
+  two_pts_made: number = 0.0;
+  two_pts_att: number = 0.0;
+  two_pt_pct: number = 0.0;
+  free_throws_made: number = 0.0;
+  free_throws_att: number = 0.0;
+  free_throw_pct: number = 0.0;
+  eff: number = 0.0;
+  deff: number = 0.0;
+}
