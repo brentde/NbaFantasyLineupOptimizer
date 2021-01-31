@@ -21,9 +21,9 @@ export class HomeComponent implements OnInit {
   public Team_Totals: Map<string, TeamOppStats> = new Map<string, TeamOppStats>();
   private Opp_Averages: TeamOppStats = new TeamOppStats();
 
-  // ***********************
-  // Draftkings Categories
-  // ***********************
+  // **********************************************
+  // Draftkings Categories for Lineup Manipulation
+  // **********************************************
 
   public PG: Map<string, PlayerData> = new Map<string, PlayerData>();
   public SG: Map<string, PlayerData> = new Map<string, PlayerData>();
@@ -33,6 +33,19 @@ export class HomeComponent implements OnInit {
   public G: Map<string, PlayerData> = new Map<string, PlayerData>();
   public F: Map<string, PlayerData> = new Map<string, PlayerData>();
   public UTIL: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+  // **********************************************
+  // Draftkings Categories for Display
+  // **********************************************
+
+  public dispPG: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public dispSG: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public dispSF: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public dispPF: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public dispC: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public dispG: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public dispF: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public dispUTIL: Map<string, PlayerData> = new Map<string, PlayerData>();
 
   // Key: Expected Fantasy Points, Value: Array of Players
 
@@ -46,240 +59,9 @@ export class HomeComponent implements OnInit {
       this.getData();
   }
 
-  public sortPlayers(): void {
-    this.sortedPlayers = new Map<string, PlayerData>([...this.Players.entries()].sort((a, b) => b[1].val_ratio - a[1].val_ratio));
-
-    this.sortedPlayers.forEach(value => {
-        let DK_Player: DkData = this.DK.get(value.player);
-        if(DK_Player !== undefined){
-          if(DK_Player.Salary > 3300){
-            let positions: string[] = DK_Player.Roster_position.split('/')
-
-            positions.forEach(position => {
-              this.insertIntoCategMap(position, value);
-            })
-          }
-        }
-    })
-  }
-
-  // I could change this so that it places all players into the appropriate categories
-  // then if I need to select a lineup, I trim each dataset to contain the top 7 values
-
-  // public insertIntoCategMap(category: string, player: PlayerData, optimization_value: number){
-  //   if(category === 'PG'){
-  //     if(this.PG.size < optimization_value){
-  //       this.PG.set(player.player, player);
-  //     }
-
-  //     if(this.G.size < optimization_value){
-  //       this.G.set(player.player, player);
-  //     }
-
-  //     if(this.UTIL.size < optimization_value){
-  //       this.UTIL.set(player.player, player);
-  //     }
-  //   } else if(category === 'SG'){
-  //     if(this.SG.size < optimization_value){
-  //       this.SG.set(player.player, player);
-  //     }
-
-  //     if(this.G.size < optimization_value){
-  //       this.G.set(player.player, player);
-  //     }
-
-  //     if(this.UTIL.size < optimization_value){
-  //       this.UTIL.set(player.player, player);
-  //     }
-  //   } else if(category === 'SF'){
-  //     if(this.SF.size < optimization_value){
-  //       this.SF.set(player.player, player);
-  //     }
-
-  //     if(this.F.size < optimization_value){
-  //       this.F.set(player.player, player);
-  //     }
-
-  //     if(this.UTIL.size < optimization_value){
-  //       this.UTIL.set(player.player, player);
-  //     }
-  //   } else if(category === 'PF'){
-  //     if(this.PF.size < optimization_value){
-  //       this.PF.set(player.player, player);
-  //     }
-
-  //     if(this.F.size < optimization_value){
-  //       this.F.set(player.player, player);
-  //     }
-
-  //     if(this.UTIL.size < optimization_value){
-  //       this.UTIL.set(player.player, player);
-  //     }
-  //   } else if(category === 'C'){
-  //     if(this.C.size < optimization_value){
-  //       this.C.set(player.player, player);
-  //     }
-
-  //     if(this.UTIL.size < optimization_value){
-  //       this.UTIL.set(player.player, player);
-  //     }
-  //   };
-  // }
-
-  public insertIntoCategMap(category: string, player: PlayerData){
-      if(category === 'PG'){
-          this.PG.set(player.player, player);
-          this.G.set(player.player, player);
-        } else if(category === 'SG'){
-          this.SG.set(player.player, player);
-          this.G.set(player.player, player);
-      } else if(category === 'SF'){
-          this.SF.set(player.player, player);
-          this.F.set(player.player, player);
-      } else if(category === 'PF'){
-          this.PF.set(player.player, player);
-          this.F.set(player.player, player);
-      } else if(category === 'C'){
-          this.C.set(player.player, player);
-      };
-
-      this.UTIL.set(player.player, player);
-    } // insertIntoCategMap
-
-  private getExpFantValSum(players: PlayerData[]): number{
-    let total: number = 0;
-
-    players.forEach(player => {
-      total += player.exp_fv;
-    })
-
-    return total;
-  }
-
-  private getSalSum(players: PlayerData[]): number{
-    let total: number = 0;
-
-    players.forEach(player => {
-      total += player.price;
-    })
-
-    return total;
-  }
-
-  private isUnique(players: PlayerData[]): boolean {
-    for(let i: number = 0; i < players.length; i++){
-      for(let j: number = 0; j < players.length; j++){
-        if((players[i].player === players[j].player) && (j !== i)){
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  private printLineups(): void{
-    let sortedLineups = new Map<number, PlayerData[]>([...this.Lineups.entries()].sort((a, b) => this.getExpFantValSum(b[1]) - this.getExpFantValSum(a[1])));
-    let top_three: number = 0;
-
-    sortedLineups.forEach(lineup => {
-      top_three++;
-
-      if(top_three <= 3){
-        console.log(`Lineup Expected Fantasy Value: ${this.getExpFantValSum(lineup)}`);
-        console.log(`Lineup Price: ${this.getSalSum(lineup)}`);
-
-        lineup.forEach(player => {
-          console.log(`Name: ${player.player}, Exp Val: ${player.exp_fv}`);
-        })
-      }
-    })
-  }
-
-  // The problem with this is by trimming the maps, I'm losing all of my previously calculated data
-
-  public trimCategories(optimValue: number): void {
-    if(!this.Lineup.has('PG')){
-      let iter = this.PG.values();
-      let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
-
-      for(let i = 0; i < optimValue; i++){
-        playerMap.set(iter.next().value.player, iter.next().value);
-      }
-
-      this.PG = playerMap;
-    }
-
-    if(!this.Lineup.has('SG')){
-
-    }
-
-    if(!this.Lineup.has('SF')){
-
-    }
-
-    if(!this.Lineup.has('PF')){
-
-    }
-
-    if(!this.Lineup.has('C')){
-
-    }
-
-    if(!this.Lineup.has('G')){
-
-    }
-
-    if(!this.Lineup.has('F')){
-
-    }
-
-    if(!this.Lineup.has('UTIL')){
-
-    }
-  }
-
-  // call selectLineups to automatially select a lineup for you
-  public selectLineups(optimization_value: number){
-    this.trimCategories();
-    let lowest: number = 500;
-
-    for(const [key, _sg] of this.SG.entries()){
-      for(const [key, _pg] of this.PG.entries()){
-        for(const [key, _sf] of this.SF.entries()){
-          for(const [key, _pf] of this.PF.entries()){
-            for(const [key, _c] of this.C.entries()){
-              for(const [key, _g] of this.G.entries()){
-                for(const [key, _f] of this.F.entries()){
-                  for(const [key, _util] of this.UTIL.entries()){
-                    let lineup: PlayerData[] = [];
-                    lineup.push(_pg);
-                    lineup.push(_sg);
-                    lineup.push(_sf);
-                    lineup.push(_pf);
-                    lineup.push(_c);
-                    lineup.push(_g);
-                    lineup.push(_f);
-                    lineup.push(_util);
-
-                    if(this.getSalSum(lineup) <= 50000){
-                      if(this.isUnique(lineup)){
-                        if(!this.Lineups.has(this.getExpFantValSum(lineup))){
-                          this.Lineups.set(this.getExpFantValSum(lineup), lineup);
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    this.printLineups();
-  } // Select Lineups
+  // **************************
+  // Retrieve and set all data
+  // **************************
 
   private getData(): void {
     this.homeService.getPlayerData().subscribe(playerData => {
@@ -293,6 +75,48 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  // ************************
+  // Get Injured Players
+  // ************************
+
+  private getInjuredPlayers(): void {
+    this.homeService.getInjuredPlayersData().subscribe(inj_players => {
+      let injPlayers: string[] = inj_players;
+
+      injPlayers.forEach(player => {
+        this.Players.delete(player);
+      })
+    })
+  } // getInjuredPlayers
+
+  // ************************
+  // Set Team Totals
+  // ************************
+
+  private setTeamTotals(): void{
+    this.Players.forEach(player => {
+      if(!this.Team_Totals.has(player.team)){
+        let team_totals: TeamOppStats = new TeamOppStats();
+
+        this.Players.forEach(avg_player => {
+            if(avg_player.team === player.team){
+              team_totals.steals += avg_player.steals;
+              team_totals.blocks += avg_player.blocks;
+              team_totals.tot_rebounds += avg_player.tot_rbds;
+              team_totals.turnovers += avg_player.turnovers;
+              team_totals.assists += avg_player.assists;
+            }
+         })
+
+        this.Team_Totals.set(player.team, team_totals)
+      }
+    })
+  } 
+
+  // ************************
+  // Get Team Data
+  // ************************
+
   private getTeamData(): void {
     this.homeService.getTeamData().subscribe(team_data => {
           team_data.forEach(team => {
@@ -302,6 +126,36 @@ export class HomeComponent implements OnInit {
           this.setOppAverages();
       });
   }
+
+  // ************************
+  // Set Opponent Averages
+  // ************************
+
+  private setOppAverages(): void{
+    this.Teams.forEach(team => {
+      this.Opp_Averages.three_pt_pct += Number(team.three_pt_pct);
+      this.Opp_Averages.two_pt_pct += Number(team.two_pt_pct);
+      this.Opp_Averages.tot_rebounds += Number(team.tot_rebounds);
+      this.Opp_Averages.steals += Number(team.steals);
+      this.Opp_Averages.turnovers += Number(team.turnovers);
+      this.Opp_Averages.assists += Number(team.assists);
+      this.Opp_Averages.blocks += Number(team.blocks);
+    })
+
+    this.Opp_Averages.three_pt_pct = Number(this.Opp_Averages.three_pt_pct)/30;
+    this.Opp_Averages.two_pt_pct = Number(this.Opp_Averages.two_pt_pct)/30;
+    this.Opp_Averages.tot_rebounds = Number(this.Opp_Averages.tot_rebounds)/30;
+    this.Opp_Averages.steals = Number(this.Opp_Averages.steals)/30;
+    this.Opp_Averages.turnovers = Number(this.Opp_Averages.turnovers)/30;
+    this.Opp_Averages.assists = Number(this.Opp_Averages.assists)/30;
+    this.Opp_Averages.blocks = Number(this.Opp_Averages.blocks)/30;
+
+    this.getDkData();
+  } // Set Opp Averages
+
+  // ************************
+  // Get DK Data
+  // ************************
 
   private getDkData(): void {
     this.homeService.getDkData().subscribe(data => {
@@ -374,6 +228,10 @@ export class HomeComponent implements OnInit {
       this.calcFantasyVal();
     });
   }
+
+  // ************************************************
+  // Calculate Player Expected Fantasy Value
+  // ************************************************
 
   private calcFantasyVal(): void {
     let tot: number = 0;
@@ -449,58 +307,278 @@ export class HomeComponent implements OnInit {
         }
       }
     })
+
+    this.sortPlayers();
   }
 
-  private setOppAverages(): void{
-    this.Teams.forEach(team => {
-      this.Opp_Averages.three_pt_pct += Number(team.three_pt_pct);
-      this.Opp_Averages.two_pt_pct += Number(team.two_pt_pct);
-      this.Opp_Averages.tot_rebounds += Number(team.tot_rebounds);
-      this.Opp_Averages.steals += Number(team.steals);
-      this.Opp_Averages.turnovers += Number(team.turnovers);
-      this.Opp_Averages.assists += Number(team.assists);
-      this.Opp_Averages.blocks += Number(team.blocks);
+  // ************************
+  // Sort All Players
+  // ************************
+
+  public sortPlayers(): void {
+    this.sortedPlayers = new Map<string, PlayerData>([...this.Players.entries()].sort((a, b) => b[1].val_ratio - a[1].val_ratio));
+
+    this.sortedPlayers.forEach(value => {
+        let DK_Player: DkData = this.DK.get(value.player);
+        if(DK_Player !== undefined){
+          if(DK_Player.Salary > 3300){
+            let positions: string[] = DK_Player.Roster_position.split('/')
+
+            positions.forEach(position => {
+              this.insertIntoCategMap(position, value);
+            })
+          }
+        }
     })
 
-    this.Opp_Averages.three_pt_pct = Number(this.Opp_Averages.three_pt_pct)/30;
-    this.Opp_Averages.two_pt_pct = Number(this.Opp_Averages.two_pt_pct)/30;
-    this.Opp_Averages.tot_rebounds = Number(this.Opp_Averages.tot_rebounds)/30;
-    this.Opp_Averages.steals = Number(this.Opp_Averages.steals)/30;
-    this.Opp_Averages.turnovers = Number(this.Opp_Averages.turnovers)/30;
-    this.Opp_Averages.assists = Number(this.Opp_Averages.assists)/30;
-    this.Opp_Averages.blocks = Number(this.Opp_Averages.blocks)/30;
+    this.selectLineups(7);
+  }
 
-    this.getDkData();
-  } // Set Opp Averages
+  // *****************************************************
+  // All Players get sorted into the appropriate category
+  // *****************************************************
+  
+  public insertIntoCategMap(category: string, player: PlayerData){
+    if(category === 'PG'){
+        this.dispPG.set(player.player, player);
+        this.dispG.set(player.player, player);
+      } else if(category === 'SG'){
+        this.dispSG.set(player.player, player);
+        this.dispG.set(player.player, player);
+    } else if(category === 'SF'){
+        this.dispSF.set(player.player, player);
+        this.dispF.set(player.player, player);
+    } else if(category === 'PF'){
+        this.dispPF.set(player.player, player);
+        this.dispF.set(player.player, player);
+    } else if(category === 'C'){
+        this.dispC.set(player.player, player);
+    };
 
-  private setTeamTotals(): void{
-    this.Players.forEach(player => {
-      if(!this.Team_Totals.has(player.team)){
-        let team_totals: TeamOppStats = new TeamOppStats();
+    this.dispUTIL.set(player.player, player);
+  } // insertIntoCategMap
+  
+  // **********************
+  // Select Lineups
+  // *********************
 
-        this.Players.forEach(avg_player => {
-            if(avg_player.team === player.team){
-              team_totals.steals += avg_player.steals;
-              team_totals.blocks += avg_player.blocks;
-              team_totals.tot_rebounds += avg_player.tot_rbds;
-              team_totals.turnovers += avg_player.turnovers;
-              team_totals.assists += avg_player.assists;
+  public selectLineups(optimization_value: number){
+    this.trimCategories(optimization_value);
+
+    for(const [key, _sg] of this.SG.entries()){
+      for(const [key, _pg] of this.PG.entries()){
+        for(const [key, _sf] of this.SF.entries()){
+          for(const [key, _pf] of this.PF.entries()){
+            for(const [key, _c] of this.C.entries()){
+              for(const [key, _g] of this.G.entries()){
+                for(const [key, _f] of this.F.entries()){
+                  for(const [key, _util] of this.UTIL.entries()){
+                    let lineup: PlayerData[] = [_pg, _sg, _sf, _pf, _c, _g, _f, _util];
+                    
+                    if(this.getSalSum(lineup) <= 50000){
+                      if(this.isUnique(lineup)){
+                        if(this.getExpFantValSum(lineup) > this.getLineupSum()){
+                          let newLineup: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+                          lineup.forEach(player => {
+                            newLineup.set(player.player, player);
+                          })
+
+                          this.Lineup = newLineup;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
-         })
-
-        this.Team_Totals.set(player.team, team_totals)
+          }
+        }
       }
+    }
+
+    this.printLineup();
+  } // Select Lineups
+
+  /*
+  *  Function trimpCategories()
+  *  Checks to see if a player has already been selected for each category
+  *  If not, fill the category map with n number of players
+  *  These maps will then by iterated through to find the best possible line up
+  * with remaining players.
+  */
+
+ public trimCategories(optimValue: number): void {
+
+  if(!this.Lineup.has('PG')){ 
+    let iter = this.dispPG.values();
+    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+    for(let i = 0; i < optimValue; i++){
+      playerMap.set(iter.next().value.player, iter.next().value);
+    }
+
+    this.PG = playerMap;
+  } else {
+    this.PG = new Map<string, PlayerData>([[this.Lineup.get('PG').player, this.Lineup.get('PG')]])
+  }
+
+  if(!this.Lineup.has('SG')){
+    let iter = this.dispSG.values();
+    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+    for(let i = 0; i < optimValue; i++){
+      playerMap.set(iter.next().value.player, iter.next().value);
+    }
+
+    this.SG = playerMap;
+  } else {
+    this.SG = new Map<string, PlayerData>([[this.Lineup.get('SG').player, this.Lineup.get('SG')]])
+  }
+
+  if(!this.Lineup.has('SF')){
+    let iter = this.dispSF.values();
+    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+    for(let i = 0; i < optimValue; i++){
+      playerMap.set(iter.next().value.player, iter.next().value);
+    }
+
+    this.SF = playerMap;
+  } else {
+    this.SF = new Map<string, PlayerData>([[this.Lineup.get('SF').player, this.Lineup.get('SF')]])
+  }
+
+  if(!this.Lineup.has('PF')){
+    let iter = this.dispPF.values();
+    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+    for(let i = 0; i < optimValue; i++){
+      playerMap.set(iter.next().value.player, iter.next().value);
+    }
+
+    this.PF = playerMap;
+  } else {
+    this.PF = new Map<string, PlayerData>([[this.Lineup.get('PF').player, this.Lineup.get('PF')]])
+  }
+
+  if(!this.Lineup.has('C')){
+    let iter = this.dispC.values();
+    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+    for(let i = 0; i < optimValue; i++){
+      playerMap.set(iter.next().value.player, iter.next().value);
+    }
+
+    this.C = playerMap;
+  } else {
+    this.C = new Map<string, PlayerData>([[this.Lineup.get('C').player, this.Lineup.get('C')]])
+  }
+
+  if(!this.Lineup.has('G')){
+    let iter = this.dispG.values();
+    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+    for(let i = 0; i < optimValue; i++){
+      playerMap.set(iter.next().value.player, iter.next().value);
+    }
+
+    this.G = playerMap;
+  } else {
+    this.G = new Map<string, PlayerData>([[this.Lineup.get('G').player, this.Lineup.get('G')]])
+  }
+
+  if(!this.Lineup.has('F')){
+    let iter = this.dispF.values();
+    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+    for(let i = 0; i < optimValue; i++){
+      playerMap.set(iter.next().value.player, iter.next().value);
+    }
+
+    this.F = playerMap;
+  } else {
+    this.F = new Map<string, PlayerData>([[this.Lineup.get('F').player, this.Lineup.get('F')]])
+  }
+
+  if(!this.Lineup.has('UTIL')){
+    let iter = this.dispUTIL.values();
+    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+
+    for(let i = 0; i < optimValue; i++){
+      playerMap.set(iter.next().value.player, iter.next().value);
+    }
+
+    this.UTIL = playerMap;
+  } else {
+    this.UTIL = new Map<string, PlayerData>([[this.Lineup.get('UTIL').player, this.Lineup.get('UTIL')]])
+  }
+
+}
+
+// ********************
+// Print Selected Lineup
+// *******************
+
+  private printLineup(): void{
+
+    for(const [key, player] of this.Lineup.entries()){
+        console.log(`${key} - ${player.exp_fv}`)
+    }
+
+    console.log(`Lineup Total: ${this.getLineupSum().toFixed(2)}`)
+  }
+
+  private getLineupSum(): number {
+    let sum: number = 0;
+
+    for(const [key, player] of this.Lineup.entries()){
+      sum += player.exp_fv;
+    }
+
+    return sum;
+  }
+
+
+  private getExpFantValSum(players: PlayerData[]): number{
+    let total: number = 0;
+
+    players.forEach(player => {
+      total += player.exp_fv;
     })
-  } // Set Team Totals
 
-  private getInjuredPlayers(): void {
-    this.homeService.getInjuredPlayersData().subscribe(inj_players => {
-      let injPlayers: string[] = inj_players;
+    return total;
+  }
 
-      injPlayers.forEach(player => {
-        this.Players.delete(player);
-      })
+  private getSalSum(players: PlayerData[]): number{
+    let total: number = 0;
+
+    players.forEach(player => {
+      total += player.price;
     })
-  } // getInjuredPlayers
 
+    return total;
+  }
+
+  private isUnique(players: PlayerData[]): boolean {
+    for(let i: number = 0; i < players.length; i++){
+      for(let j: number = 0; j < players.length; j++){
+        if((players[i].player === players[j].player) && (j !== i)){
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  public clearDkCatMaps(): void {
+    this.PG.clear();
+    this.SG.clear();
+    this.SF.clear();
+    this.C.clear();
+    this.G.clear();
+    this.F.clear();
+    this.UTIL.clear();
+  }
 }
