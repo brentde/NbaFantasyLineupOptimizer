@@ -331,7 +331,7 @@ export class HomeComponent implements OnInit {
         }
     })
 
-    this.selectLineups(7);
+   // this.selectLineups(7);
   }
 
   // *****************************************************
