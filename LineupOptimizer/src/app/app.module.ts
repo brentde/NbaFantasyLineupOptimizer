@@ -11,6 +11,11 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { PlayersComponent } from './players/players.component';
 import { PlayerCardComponent } from './player-card/player-card.component';
 import { TeamCardComponent } from './team-card/team-card.component';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTableModule } from '@angular/material/table'
+import {  MatProgressSpinnerModule  } from '@angular/material/progress-spinner';
+import {  MatIconModule } from '@angular/material/icon';
+
 
 @NgModule({
   declarations: [
@@ -26,7 +31,11 @@ import { TeamCardComponent } from './team-card/team-card.component';
     AppRoutingModule,
     HttpClientModule,
     BrowserAnimationsModule,
-    MatToolbarModule
+    MatToolbarModule,
+    MatTabsModule,
+    MatTableModule,
+    MatProgressSpinnerModule,
+    MatIconModule 
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,0 +1,34 @@
+.mat-column-Name {
+    width: 30%;
+}
+
+.mat-column-Team {
+    width: 20%;
+}
+
+.mat-column-Exp_Fant_Pts {
+    width: 23%;
+}
+
+.mat-column-Salary {
+    width: 12%;
+}
+
+.mat-column-Value {
+    width: 10%;
+}
+
+.mat-column-Add_Btn {
+    width: 5%;
+}
+
+.add-icon:hover {
+    color: #3F51B5 !important;
+    cursor: pointer;
+}
+
+.table-styles{
+    overflow-x: scroll;
+    height: 29%;
+    max-height: 29%;
+}
