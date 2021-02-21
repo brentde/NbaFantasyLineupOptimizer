@@ -3,20 +3,35 @@ import { PlayerData } from './../shared/models/PlayerData';
 import { TeamConversionService } from './../shared/services/team-conversion.service';
 import { DkData } from '../shared/models/DkData';
 import { TeamOppStats } from '../shared/models/TeamOppStats';
-import { Component, OnInit, ɵresolveComponentResources } from '@angular/core';
+import { Component, OnInit} from '@angular/core';
+import {animate, state, style, transition, trigger} from '@angular/animations';
+
 
 @Component({
   selector: 'app-players',
   templateUrl: './players.component.html',
-  styleUrls: ['./players.component.scss']
+  styleUrls: ['./players.component.scss'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({height: '0px', minHeight: '0'})),
+      state('expanded', style({height: '*'})),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ]),
+  ],
 })
 export class PlayersComponent implements OnInit {
-
   Loading: boolean = true;
-  // Table Column Headers
+  Total_Cost: number = 0;
+  Total_Fntsy_Pts: number = 0;
   displayedColumns: string[] = ["Name", "Team", "Exp_Fant_Pts", "Salary", "Value", "Add_Btn"]
+  selectionDisplayedColumns: string[] = ["L_Name", "L_Team", "L_Exp_Fant_Pts", "L_Salary", "Remove_Btn"]
+  columnsToDisplay = ['Name', 'Team', 'Price', 'Exp Fantasy Val'];
+
   
+  //*************
   // Table Data
+  //************
+
   pgDataSource: PlayerData[];
   sgDataSource: PlayerData[];
   sfDataSource: PlayerData[];
@@ -25,32 +40,27 @@ export class PlayersComponent implements OnInit {
   gDataSource: PlayerData[];
   fDataSource: PlayerData[];
   utilDataSource: PlayerData[];
+  selectionTableDataSource: PlayerData[];
+  expandedElement: PlayerData | null;
 
-  public uniqueCount: number = 0;
+  // All Player Statistics
   public Players: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public sortedPlayers: Map<string, PlayerData>;
+
+  // All Team Defensive Stat Data
   public Teams: Map<string, TeamOppStats> = new Map<string, TeamOppStats>();
+
+  // Matchup Info
   public MatchUps: Map<string, string> = new Map<string, string>();
+
+  // Sll DK Data
   public DK: Map<string, DkData> = new Map<string, DkData>();
 
+  // This Map holds data on team stat totals which are used to determine how much 
+  // of the teams overall stats a specific player contributes to
   public Team_Totals: Map<string, TeamOppStats> = new Map<string, TeamOppStats>();
-  private Opp_Averages: TeamOppStats = new TeamOppStats();
 
   // **********************************************
-  // Draftkings Categories for Lineup Manipulation
-  // **********************************************
-
-  public PG: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public SG: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public SF: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public PF: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public C: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public G: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public F: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public UTIL: Map<string, PlayerData> = new Map<string, PlayerData>();
-
-  // **********************************************
-  // Draftkings Categories for Display
+  // Draftkings Categories for Display Purposes
   // **********************************************
 
   public dispPG: Map<string, PlayerData> = new Map<string, PlayerData>();
@@ -62,9 +72,21 @@ export class PlayersComponent implements OnInit {
   public dispF: Map<string, PlayerData> = new Map<string, PlayerData>();
   public dispUTIL: Map<string, PlayerData> = new Map<string, PlayerData>();
 
+    // **********************************************
+  // Draftkings Categories for Lineup Manipulation
+  // **********************************************
+
+  public  PG: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public  SG: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public  SF: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public  PF: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public  C: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public  G: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public  F: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public  UTIL: Map<string, PlayerData> = new Map<string, PlayerData>();
+
   // Key: Expected Fantasy Points, Value: Array of Players
 
-  public Lineups: Map<number, PlayerData[]> = new Map<number, PlayerData[]>();
   public Lineup: Map<string, PlayerData> = new Map<string, PlayerData>();
   
   constructor(private homeService: HomeService,
@@ -72,6 +94,34 @@ export class PlayersComponent implements OnInit {
 
   ngOnInit() {
     this.getData();
+
+
+    // let pg: PlayerData = new PlayerData();
+    // pg.position = 'PG';
+    // let sg: PlayerData = new PlayerData();
+    // sg.position = 'SG';
+    // let sf: PlayerData = new PlayerData();
+    // sf.position = 'SF';
+    // let pf: PlayerData = new PlayerData();
+    // pf.position = 'PF';
+    // let c: PlayerData = new PlayerData();
+    // c.position = 'C';
+    // let g: PlayerData = new PlayerData();
+    // g.position = 'g';
+    // let f: PlayerData = new PlayerData();
+    // f.position = 'f';
+    // let util: PlayerData = new PlayerData();
+    // util.position = 'util';
+
+
+    // this.Lineup.set(pg.position, pg);
+    // this.Lineup.set(sg.position, sg);
+    // this.Lineup.set(sf.position, sf);
+    // this.Lineup.set(pf.position, pf);
+    // this.Lineup.set(c.position, c);
+    // this.Lineup.set(g.position, g);
+    // this.Lineup.set(f.position, f);
+    // this.Lineup.set(util.position, util);
   }
 
   // **************************
@@ -98,6 +148,7 @@ export class PlayersComponent implements OnInit {
     this.homeService.getInjuredPlayersData().subscribe(inj_players => {
       let injPlayers: string[] = inj_players;
 
+      // If a player is injured, remove the player for the list
       injPlayers.forEach(player => {
         this.Players.delete(player);
       })
@@ -109,22 +160,26 @@ export class PlayersComponent implements OnInit {
   // ************************
 
   private setTeamTotals(): void{
+    // Iterate though Players read in from bbref
     this.Players.forEach(player => {
-      if(!this.Team_Totals.has(player.team)){
-        let team_totals: TeamOppStats = new TeamOppStats();
+      let team_totals: TeamOppStats;
 
-        this.Players.forEach(avg_player => {
-            if(avg_player.team === player.team){
-              team_totals.steals += avg_player.steals;
-              team_totals.blocks += avg_player.blocks;
-              team_totals.tot_rebounds += avg_player.tot_rbds;
-              team_totals.turnovers += avg_player.turnovers;
-              team_totals.assists += avg_player.assists;
-            }
-         })
-
-        this.Team_Totals.set(player.team, team_totals)
+      // If team exist, get team and keep adding stats to totals
+      if(this.Team_Totals.has(player.team)){
+        team_totals = this.Team_Totals.get(player.team);
+      } else {
+        team_totals = new TeamOppStats();
       }
+
+      // Accumulate team stats
+      team_totals.steals += player.steals;
+      team_totals.blocks += player.blocks;
+      team_totals.tot_rebounds += player.tot_rbds;
+      team_totals.turnovers += player.turnovers;
+      team_totals.assists += player.assists;
+      
+      // set or update team total stats
+      this.Team_Totals.set(player.team, team_totals)
     })
   } 
 
@@ -138,35 +193,9 @@ export class PlayersComponent implements OnInit {
             this.Teams.set(team.team, team);
           });
 
-          this.setOppAverages();
+          this.getDkData();
       });
   }
-
-  // ************************
-  // Set Opponent Averages
-  // ************************
-
-  private setOppAverages(): void{
-    this.Teams.forEach(team => {
-      this.Opp_Averages.three_pt_pct += Number(team.three_pt_pct);
-      this.Opp_Averages.two_pt_pct += Number(team.two_pt_pct);
-      this.Opp_Averages.tot_rebounds += Number(team.tot_rebounds);
-      this.Opp_Averages.steals += Number(team.steals);
-      this.Opp_Averages.turnovers += Number(team.turnovers);
-      this.Opp_Averages.assists += Number(team.assists);
-      this.Opp_Averages.blocks += Number(team.blocks);
-    })
-
-    this.Opp_Averages.three_pt_pct = Number(this.Opp_Averages.three_pt_pct)/30;
-    this.Opp_Averages.two_pt_pct = Number(this.Opp_Averages.two_pt_pct)/30;
-    this.Opp_Averages.tot_rebounds = Number(this.Opp_Averages.tot_rebounds)/30;
-    this.Opp_Averages.steals = Number(this.Opp_Averages.steals)/30;
-    this.Opp_Averages.turnovers = Number(this.Opp_Averages.turnovers)/30;
-    this.Opp_Averages.assists = Number(this.Opp_Averages.assists)/30;
-    this.Opp_Averages.blocks = Number(this.Opp_Averages.blocks)/30;
-
-    this.getDkData();
-  } // Set Opp Averages
 
   // ************************
   // Get DK Data
@@ -191,46 +220,17 @@ export class PlayersComponent implements OnInit {
         // Get Matchups
 
         if(DKArr[i + 6] !== undefined){
-          let team1:string = DKArr[i + 6].split('@')[0];
-          let team2:string = DKArr[i + 6].split('@')[1].split(' ')[0];
+          let team1:string = this.TeamConversionService.convertTeamName(DKArr[i + 6].split('@')[0]);
+          let team2:string = this.TeamConversionService.convertTeamName(DKArr[i + 6].split('@')[1].split(' ')[0]);
 
           if(!this.MatchUps.has(team1) && !this.MatchUps.has(team2)){
-            if(team1 === 'SA'){
-              team1 = 'SAS'
-            }
-            if(team2 === 'SA'){
-              team2 = 'SAS'
-            }
-
-            if(team1 === 'GS'){
-              team1 = 'GSW'
-            }
-
-            if(team2 === 'GS'){
-              team2 = 'GSW'
-            }
-
-            if(team1 === 'NO'){
-              team1 = 'NOP'
-            }
-            if(team2 === 'NO'){
-              team2 = 'NOP'
-            }
-
-            if(team1 === 'NY'){
-              team1 = 'NKY'
-            }
-            if(team2 === 'NY'){
-              team2 = 'NYK'
-            }
-
             this.MatchUps.set(team1, team2);
             this.MatchUps.set(team2, team1);
           }
         }
 
         dk_data.Game_info = DKArr[i + 6];
-        dk_data.Team = DKArr[i + 7];
+        dk_data.Team = this.TeamConversionService.convertTeamName(DKArr[i + 7]);
         dk_data.Avg_fantasy_ppg = Number(DKArr[i + 8]);
 
         if(dk_data.Name !== undefined){
@@ -249,8 +249,8 @@ export class PlayersComponent implements OnInit {
   // ************************************************
 
   private calcFantasyVal(): void {
-    let tot: number = 0;
-
+    let Opp_Averages: TeamOppStats = new TeamOppStats();
+    this.setOppAverages(Opp_Averages);
 
     this.Players.forEach(player => {
       let bonusProgress: number = 0;
@@ -260,23 +260,23 @@ export class PlayersComponent implements OnInit {
       if(opponent !== undefined){
 
         // Calculate 3pt Value
-        let exp3ptVal: number = ((player.three_pts_att * (player.three_pts_pct + ((opponent.three_pt_pct - this.Opp_Averages.three_pt_pct) / 100))) * 3.5)
+        let exp3ptVal: number = ((player.three_pts_att * (player.three_pts_pct + ((opponent.three_pt_pct - Opp_Averages.three_pt_pct) / 100))) * 3.5)
         // Calculate 2pt Value
-        let exp2ptVal: number = ((player.two_pts_att * (player.two_pts_pct + ((opponent.two_pt_pct - this.Opp_Averages.two_pt_pct) / 100))) * 2.0)
+        let exp2ptVal: number = ((player.two_pts_att * (player.two_pts_pct + ((opponent.two_pt_pct - Opp_Averages.two_pt_pct) / 100))) * 2.0)
         if(((exp3ptVal/3.5) + (exp2ptVal/2.0)) > 10.0){
           bonusProgress += 1;
         }
 
         // Calculate Assist Value
         let assistPct: number = player.assists/this.Team_Totals.get(player.team).assists;
-        let expAssistVal: number = (player.assists + assistPct * (opponent.assists - this.Opp_Averages.assists)) * 1.5;
+        let expAssistVal: number = (player.assists + assistPct * (opponent.assists - Opp_Averages.assists)) * 1.5;
 
         if((expAssistVal/1.5) >= 10.0){
           bonusProgress += 1;
         }
         // Calculate Rebound Value
         let reboundPct: number = player.tot_rbds/Number(this.Team_Totals.get(player.team).tot_rebounds);
-        let expReboundVal: number = (player.tot_rbds + reboundPct * (opponent.tot_rebounds - this.Opp_Averages.tot_rebounds)) * 1.25;
+        let expReboundVal: number = (player.tot_rbds + reboundPct * (opponent.tot_rebounds - Opp_Averages.tot_rebounds)) * 1.25;
 
         if((expReboundVal/1.25) >= 10.0){
           bonusProgress += 1;
@@ -284,7 +284,7 @@ export class PlayersComponent implements OnInit {
 
         // Calculate Steal Value
         let stealPct: number = player.steals/Number(this.Team_Totals.get(player.team).steals);
-        let expStealVal: number = (player.steals + stealPct * (opponent.steals - this.Opp_Averages.steals)) * 2;
+        let expStealVal: number = (player.steals + stealPct * (opponent.steals - Opp_Averages.steals)) * 2;
 
 
         if((expStealVal/2) >= 10.0){
@@ -293,7 +293,7 @@ export class PlayersComponent implements OnInit {
 
         // Calculate Block Value
         let blockPct: number = player.blocks/Number(this.Team_Totals.get(player.team).blocks);
-        let expBlockVal: number = (player.blocks + blockPct * (opponent.blocks - this.Opp_Averages.blocks)) * 2;
+        let expBlockVal: number = (player.blocks + blockPct * (opponent.blocks - Opp_Averages.blocks)) * 2;
 
 
         if((expBlockVal/2) >= 10.0){
@@ -302,7 +302,7 @@ export class PlayersComponent implements OnInit {
 
         // Calculate Turnover Value
         let turnoverPct: number = player.turnovers/Number(this.Team_Totals.get(player.team).turnovers);
-        let expTurnoverVal: number = (player.turnovers + turnoverPct * (opponent.turnovers - this.Opp_Averages.turnovers)) * 0.5;
+        let expTurnoverVal: number = (player.turnovers + turnoverPct * (opponent.turnovers - Opp_Averages.turnovers)) * 0.5;
 
         let expFantasyPts: number = exp2ptVal + exp3ptVal + expAssistVal + expBlockVal + expReboundVal + expStealVal - expTurnoverVal;
 
@@ -326,28 +326,63 @@ export class PlayersComponent implements OnInit {
     this.sortPlayers();
   }
 
+   // ************************
+  // Set Opponent Averages
   // ************************
-  // Sort All Players
-  // ************************
+
+  private setOppAverages(Opp_Averages: TeamOppStats): void{
+    this.Teams.forEach(team => {
+      Opp_Averages.three_pt_pct += Number(team.three_pt_pct);
+      Opp_Averages.two_pt_pct += Number(team.two_pt_pct);
+      Opp_Averages.tot_rebounds += Number(team.tot_rebounds);
+      Opp_Averages.steals += Number(team.steals);
+      Opp_Averages.turnovers += Number(team.turnovers);
+      Opp_Averages.assists += Number(team.assists);
+      Opp_Averages.blocks += Number(team.blocks);
+    })
+
+    Opp_Averages.three_pt_pct = Number(Opp_Averages.three_pt_pct)/30;
+    Opp_Averages.two_pt_pct = Number(Opp_Averages.two_pt_pct)/30;
+    Opp_Averages.tot_rebounds = Number(Opp_Averages.tot_rebounds)/30;
+    Opp_Averages.steals = Number(Opp_Averages.steals)/30;
+    Opp_Averages.turnovers = Number(Opp_Averages.turnovers)/30;
+    Opp_Averages.assists = Number(Opp_Averages.assists)/30;
+    Opp_Averages.blocks = Number(Opp_Averages.blocks)/30;
+  } 
+
+  // ******************************
+  // Sort Players Into Categories
+  // ******************************
 
   public sortPlayers(): void {
-    this.sortedPlayers = new Map<string, PlayerData>([...this.Players.entries()].sort((a, b) => b[1].val_ratio - a[1].val_ratio));
-
-    this.sortedPlayers.forEach(value => {
-        let DK_Player: DkData = this.DK.get(value.player);
+    this.Players.forEach(player => {   
+        let DK_Player: DkData = this.DK.get(player.player);
         if(DK_Player !== undefined){
-          if(DK_Player.Salary > 3300){
+          if(DK_Player.Salary >= 3200){
             let positions: string[] = DK_Player.Roster_position.split('/')
 
             positions.forEach(position => {
-              this.insertIntoCategMap(position, value);
+              this.insertIntoCategMap(position, this.createNewPlayer(player, position));
             })
           }
         }
     })
 
-    this.setDataSource();
-   // this.selectLineups(7);
+    this.refreshDataSource();
+    this.refreshLineup();
+    // this.selectLineups(7);
+  }
+
+  private createNewPlayer(player: PlayerData, position: string): PlayerData {
+    let ret_player: PlayerData = new PlayerData();
+    ret_player.player = player.player;
+    ret_player.position = position;
+    ret_player.val_ratio = player.val_ratio;
+    ret_player.player = player.player;
+    ret_player.price = player.price;
+    ret_player.team = player.team;
+    ret_player.exp_fv = player.exp_fv;
+    return ret_player;
   }
 
   // *****************************************************
@@ -379,7 +414,9 @@ export class PlayersComponent implements OnInit {
   // *********************
 
   public selectLineups(optimization_value: number){
-    this.trimCategories(optimization_value);
+     
+   this.trimCategories(optimization_value);
+
 
     for(const [key, _sg] of this.SG.entries()){
       for(const [key, _pg] of this.PG.entries()){
@@ -392,15 +429,16 @@ export class PlayersComponent implements OnInit {
                     let lineup: PlayerData[] = [_pg, _sg, _sf, _pf, _c, _g, _f, _util];
                     
                     if(this.getSalSum(lineup) <= 50000){
-                      if(this.isUnique(lineup)){
-                        if(this.getExpFantValSum(lineup) > this.getLineupSum()){
-                          let newLineup: Map<string, PlayerData> = new Map<string, PlayerData>();
-
-                          lineup.forEach(player => {
-                            newLineup.set(player.player, player);
-                          })
-
-                          this.Lineup = newLineup;
+                      if(this.lineupIsUnique(lineup)){
+                        if(this.getExpFantValSum(lineup) > this.getLineupSum()){                          
+                          this.Lineup.set('PG', lineup[0]);
+                          this.Lineup.set('SG', lineup[1]);
+                          this.Lineup.set('SF', lineup[2]);
+                          this.Lineup.set('PF', lineup[3]);
+                          this.Lineup.set('C', lineup[4]);
+                          this.Lineup.set('G', lineup[5]);
+                          this.Lineup.set('F', lineup[6]);
+                          this.Lineup.set('UTIL', lineup[7]);     
                         }
                       }
                     }
@@ -425,7 +463,6 @@ export class PlayersComponent implements OnInit {
   */
 
  public trimCategories(optimValue: number): void {
-
   if(!this.Lineup.has('PG')){ 
     let iter = this.dispPG.values();
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
@@ -532,59 +569,117 @@ export class PlayersComponent implements OnInit {
 
 }
 
-public setDataSource(): void{
-  let pointGuards: PlayerData[] = [];
-  let startingGuards: PlayerData[] = [];
-  let startingForwards: PlayerData[] = [];
-  let powerForwards: PlayerData[] = [];
-  let centers: PlayerData[] = [];
-  let guards: PlayerData[] = [];
-  let forwards: PlayerData[] = [];
-  let utility: PlayerData[] = [];
-
-  this.dispPG.forEach(point_guard => {
-    pointGuards.push(point_guard);
-  })
-
-  this.dispSG.forEach(starting_guard => {
-    startingGuards.push(starting_guard);
-  })
-
-   this.dispSF.forEach(starting_forwards => {
-    startingForwards.push(starting_forwards);
-  })
-
-  this.dispPF.forEach(power_forwards => {
-    powerForwards.push(power_forwards);
-  })
-
-  this.dispC.forEach(_centers => {
-    centers.push(_centers);
-  })
-
-  this.dispG.forEach(_guards => {
-    guards.push(_guards);
-  })
-
-  this.dispF.forEach(_forwards => {
-    forwards.push(_forwards);
-  })
-
-  this.dispUTIL.forEach(util_players => {
-    utility.push(util_players);
-  })
-
-  this.pgDataSource = pointGuards;
-  this.sgDataSource = startingGuards;
-  this.sfDataSource = startingForwards;
-  this.pfDataSource = powerForwards;
-  this.cDataSource = centers;
-  this.gDataSource = guards;
-  this.fDataSource = forwards;
-  this.utilDataSource = utility;
+public refreshDataSource(): void {
+  this.pgDataSource = Array.from(this.dispPG.values());
+  this.sgDataSource  = Array.from(this.dispSG.values());
+  this.sfDataSource  = Array.from(this.dispSF.values());
+  this.pfDataSource  = Array.from(this.dispPF.values());
+  this.cDataSource  = Array.from(this.dispC.values());
+  this.gDataSource  = Array.from(this.dispG.values());
+  this.fDataSource = Array.from(this.dispF.values());;
+  this.utilDataSource  = Array.from(this.dispUTIL.values());
+  this.refreshLineup();
   this.Loading = false;
 }
 
+public refreshLineup(): void {
+  this.selectionTableDataSource =  Array.from(this.Lineup.values());
+}
+
+public lineupAdd(player: PlayerData, position: string): void{
+  if(this.Lineup.size < 9){
+    // If position is filled, re-add player to display list
+    if(this.Lineup.has(position)){
+      this.Total_Cost -= this.Lineup.get(position).price;
+      this.Total_Fntsy_Pts -= this.Lineup.get(position).exp_fv;
+      this.dispPlayerAdd(this.Lineup.get(position), position);
+    }
+    // set new player at position
+    this.Lineup.set(position, player);
+    this.Total_Cost += this.Lineup.get(position).price;
+    this.Total_Fntsy_Pts = Number((this.Total_Fntsy_Pts + this.Lineup.get(position).exp_fv).toFixed(2));
+    this.dispPlayerRemove(player, position);
+    
+    this.refreshDataSource();
+  }
+}
+
+public dispPlayerRemove(player: PlayerData, position: string){
+  // This should make a call to the database and flip the players selectable flag to N
+  // This should then refresh the lineup with a call to sortPlayers
+
+  switch(position){
+    case 'SG': {
+      this.dispSG.delete(player.player);
+      break;
+    }
+    case 'PG': {
+      this.dispPG.delete(player.player);
+      break;
+    }
+    case 'SF': {
+      this.dispSF.delete(player.player);
+      break;
+    }
+    case 'PF': {
+      this.dispPF.delete(player.player);
+      break;
+    }
+    case 'G': {
+      this.dispG.delete(player.player);
+      break;
+    }
+    case 'F': {
+      this.dispF.delete(player.player);
+      break;
+    }
+    case 'UTIL': {
+      this.dispUTIL.delete(player.player);
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  return;
+}
+
+public dispPlayerAdd(player: PlayerData, position: string): void {
+  switch(position){
+    case 'SG': {
+      this.dispSG.set(player.player, player);
+      break;
+    }
+    case 'PG': {
+      this.dispPG.set(player.player, player);
+      break;
+    }
+    case 'SF': {
+      this.dispSF.set(player.player, player);
+      break;
+    }
+    case 'PF': {
+      this.dispPF.set(player.player, player);
+      break;
+    }
+    case 'G': {
+      this.dispG.set(player.player, player);
+      break;
+    }
+    case 'F': {
+      this.dispF.set(player.player, player);
+      break;
+    }
+    case 'UTIL': {
+      this.dispUTIL.set(player.player, player);
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+}
 // ********************
 // Print Selected Lineup
 // *******************
@@ -592,7 +687,7 @@ public setDataSource(): void{
   private printLineup(): void{
 
     for(const [key, player] of this.Lineup.entries()){
-        console.log(`${key} - ${player.exp_fv}`)
+        console.log(`${player.player} - ${player.exp_fv}`)
     }
 
     console.log(`Lineup Total: ${this.getLineupSum().toFixed(2)}`)
@@ -629,7 +724,7 @@ public setDataSource(): void{
     return total;
   }
 
-  private isUnique(players: PlayerData[]): boolean {
+  private lineupIsUnique(players: PlayerData[]): boolean {
     for(let i: number = 0; i < players.length; i++){
       for(let j: number = 0; j < players.length; j++){
         if((players[i].player === players[j].player) && (j !== i)){
@@ -641,13 +736,4 @@ public setDataSource(): void{
     return true;
   }
 
-  public clearDkCatMaps(): void {
-    this.PG.clear();
-    this.SG.clear();
-    this.SF.clear();
-    this.C.clear();
-    this.G.clear();
-    this.F.clear();
-    this.UTIL.clear();
-  }
 }

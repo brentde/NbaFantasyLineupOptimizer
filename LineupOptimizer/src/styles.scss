@@ -1,9 +1,3 @@
-@import '~@angular/material/theming';
-
-.player-comp-shadow {
-  // Adds a shadow for elevation level 2 with color #e91e63 and 80% of the default opacity:
-  @include mat-elevation(2, #e91e63, 0.8);
-}
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

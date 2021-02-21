@@ -13,8 +13,12 @@ import { PlayerCardComponent } from './player-card/player-card.component';
 import { TeamCardComponent } from './team-card/team-card.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table'
-import {  MatProgressSpinnerModule  } from '@angular/material/progress-spinner';
-import {  MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+import {MatCardModule} from '@angular/material/card';
+import {MatGridListModule} from '@angular/material/grid-list';
+
+
 
 
 @NgModule({
@@ -35,7 +39,9 @@ import {  MatIconModule } from '@angular/material/icon';
     MatTabsModule,
     MatTableModule,
     MatProgressSpinnerModule,
-    MatIconModule 
+    MatIconModule,
+    MatCardModule,
+    MatGridListModule
   ],
   providers: [],
   bootstrap: [AppComponent]
