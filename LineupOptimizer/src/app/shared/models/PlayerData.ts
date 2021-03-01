@@ -1,5 +1,6 @@
 export class PlayerData {
   player: string = '';
+  id: string = '';
   position: string = '';
   age: number = 0;
   team: string = '';
@@ -31,4 +32,6 @@ export class PlayerData {
   exp_fv: number = 0.0;
   price: number = 0;
   val_ratio: number = 0.0;
+  active: string = 'N';
+  photo: any;
 }

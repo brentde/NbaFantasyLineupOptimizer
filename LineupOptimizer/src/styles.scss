@@ -6,6 +6,10 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     background-color: #3F51B5 !important;
 }
 
+// **************
+// Basic Styles
+// **************
+
 .w-100{
     width: 100%;
 }
@@ -38,7 +42,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     height: 50%;
 }
 
-
 .w-25{
     width: 25%;
 }
@@ -47,4 +50,14 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     height: 25%;
 }
 
+.ta-c {
+    text-align: center;
+}
 
+.ta-l {
+    text-align: left;
+}
+
+.fs-14 {
+    font-size: 14px;
+}

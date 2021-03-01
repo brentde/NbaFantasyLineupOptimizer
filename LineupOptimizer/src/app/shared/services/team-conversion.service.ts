@@ -12,8 +12,6 @@ export class TeamConversionService {
       return 'SAS';
     } else if(teamName === 'GS'){
       return 'GSW';
-    } else if(teamName === 'BKN'){
-      return 'BKO';
     } else if(teamName === 'CHA'){
       return 'CHO'; 
     } else if(teamName === 'NO'){

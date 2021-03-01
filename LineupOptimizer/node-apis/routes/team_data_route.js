@@ -58,7 +58,7 @@ function convertTeamName(name) {
   } else if(name === 'Milwaukee'){
     return 'MIL';
   } else if(name === 'Brooklyn'){
-    return 'BRK';
+    return 'BKN';
   } else if(name === 'Chicago'){
     return 'CHI';
   } else if(name === 'Sacramento'){

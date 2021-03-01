@@ -1,5 +1,6 @@
 class PlayerData {
   player = '';
+  id = 0;
   position = '';
   age = 0;
   team = '';

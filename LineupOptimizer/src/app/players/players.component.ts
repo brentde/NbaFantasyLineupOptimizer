@@ -3,8 +3,11 @@ import { PlayerData } from './../shared/models/PlayerData';
 import { TeamConversionService } from './../shared/services/team-conversion.service';
 import { DkData } from '../shared/models/DkData';
 import { TeamOppStats } from '../shared/models/TeamOppStats';
-import { Component, OnInit} from '@angular/core';
-import {animate, state, style, transition, trigger} from '@angular/animations';
+import { Component, OnInit, ViewChild} from '@angular/core';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatTabGroup } from '@angular/material';
+import { DomSanitizer } from '@angular/platform-browser';
+
 
 
 @Component({
@@ -20,12 +23,17 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
   ],
 })
 export class PlayersComponent implements OnInit {
+
+  @ViewChild(MatTabGroup, {static: false}) tabGroup: MatTabGroup;
+
+  selected: boolean = false;
   Loading: boolean = true;
+  cur_index: number = 0;
   Total_Cost: number = 0;
   Total_Fntsy_Pts: number = 0;
   displayedColumns: string[] = ["Name", "Team", "Exp_Fant_Pts", "Salary", "Value", "Add_Btn"]
   selectionDisplayedColumns: string[] = ["L_Name", "L_Team", "L_Exp_Fant_Pts", "L_Salary", "Remove_Btn"]
-  columnsToDisplay = ['Name', 'Team', 'Price', 'Exp Fantasy Val'];
+  dropDownColumns = ['Name', 'Team', 'Price', 'Exp Fantasy Val'];
 
   
   //*************
@@ -90,38 +98,25 @@ export class PlayersComponent implements OnInit {
   public Lineup: Map<string, PlayerData> = new Map<string, PlayerData>();
   
   constructor(private homeService: HomeService,
-    private TeamConversionService: TeamConversionService) { }
+    private TeamConversionService: TeamConversionService,
+    private sanitizer: DomSanitizer) { }
 
   ngOnInit() {
     this.getData();
+    this.clearLineup();
+  }
 
-
-    // let pg: PlayerData = new PlayerData();
-    // pg.position = 'PG';
-    // let sg: PlayerData = new PlayerData();
-    // sg.position = 'SG';
-    // let sf: PlayerData = new PlayerData();
-    // sf.position = 'SF';
-    // let pf: PlayerData = new PlayerData();
-    // pf.position = 'PF';
-    // let c: PlayerData = new PlayerData();
-    // c.position = 'C';
-    // let g: PlayerData = new PlayerData();
-    // g.position = 'g';
-    // let f: PlayerData = new PlayerData();
-    // f.position = 'f';
-    // let util: PlayerData = new PlayerData();
-    // util.position = 'util';
-
-
-    // this.Lineup.set(pg.position, pg);
-    // this.Lineup.set(sg.position, sg);
-    // this.Lineup.set(sf.position, sf);
-    // this.Lineup.set(pf.position, pf);
-    // this.Lineup.set(c.position, c);
-    // this.Lineup.set(g.position, g);
-    // this.Lineup.set(f.position, f);
-    // this.Lineup.set(util.position, util);
+// toggleExpansion and set player photos
+public togglePlayerExpansion(player: PlayerData) {
+      if(!this.selected){
+        let objectURL = `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.id}.png`;
+        player.photo = this.sanitizer.bypassSecurityTrustUrl(objectURL);
+        this.expandedElement = player;
+        this.selected = true;
+      } else {
+        this.expandedElement = null;
+        this.selected = false;
+      }
   }
 
   // **************************
@@ -357,6 +352,7 @@ export class PlayersComponent implements OnInit {
   public sortPlayers(): void {
     this.Players.forEach(player => {   
         let DK_Player: DkData = this.DK.get(player.player);
+        if(player.exp_fv > 0){
         if(DK_Player !== undefined){
           if(DK_Player.Salary >= 3200){
             let positions: string[] = DK_Player.Roster_position.split('/')
@@ -366,22 +362,24 @@ export class PlayersComponent implements OnInit {
             })
           }
         }
+      }
     })
 
     this.refreshDataSource();
     this.refreshLineup();
-    // this.selectLineups(7);
   }
 
   private createNewPlayer(player: PlayerData, position: string): PlayerData {
     let ret_player: PlayerData = new PlayerData();
     ret_player.player = player.player;
+    ret_player.id = player.id;
     ret_player.position = position;
     ret_player.val_ratio = player.val_ratio;
     ret_player.player = player.player;
     ret_player.price = player.price;
     ret_player.team = player.team;
     ret_player.exp_fv = player.exp_fv;
+    ret_player.active = 'Y';
     return ret_player;
   }
 
@@ -409,14 +407,39 @@ export class PlayersComponent implements OnInit {
     this.dispUTIL.set(player.player, player);
   } // insertIntoCategMap
   
+  public clearLineup() {
+    let positions = ['PG', 'SG', 'SF', 'PF', 'C', 'G', 'F', 'UTIL'];
+
+    positions.forEach(position => {
+      let player: PlayerData = new PlayerData();
+      player.position = position;
+
+      if(this.Lineup.has(position) && this.Lineup.get(position).player != '')
+        this.togglePlayerStatus(this.Lineup.get(position), 'Y');
+
+      this.Lineup.set(position, player);
+    })
+
+    this.refreshDataSource();
+    this.updateTotals();
+  }
+
+  public removePlayer(player: PlayerData){
+    let def_player: PlayerData = new PlayerData()
+    this.togglePlayerStatus(player, 'Y');
+    this.Lineup.set(player.position, def_player);
+    this.refreshDataSource();
+    this.updateTotals();
+  }
+
+
   // **********************
   // Select Lineups
   // *********************
 
-  public selectLineups(optimization_value: number){
+  public selectLineup(){
      
-   this.trimCategories(optimization_value);
-
+   this.trimCategories();
 
     for(const [key, _sg] of this.SG.entries()){
       for(const [key, _pg] of this.PG.entries()){
@@ -427,18 +450,13 @@ export class PlayersComponent implements OnInit {
                 for(const [key, _f] of this.F.entries()){
                   for(const [key, _util] of this.UTIL.entries()){
                     let lineup: PlayerData[] = [_pg, _sg, _sf, _pf, _c, _g, _f, _util];
-                    
+                    let positions: string[] = ['PG', 'SG', 'SF', 'PF', 'C', 'G', 'F', 'UTIL'];
+  
                     if(this.getSalSum(lineup) <= 50000){
                       if(this.lineupIsUnique(lineup)){
-                        if(this.getExpFantValSum(lineup) > this.getLineupSum()){                          
-                          this.Lineup.set('PG', lineup[0]);
-                          this.Lineup.set('SG', lineup[1]);
-                          this.Lineup.set('SF', lineup[2]);
-                          this.Lineup.set('PF', lineup[3]);
-                          this.Lineup.set('C', lineup[4]);
-                          this.Lineup.set('G', lineup[5]);
-                          this.Lineup.set('F', lineup[6]);
-                          this.Lineup.set('UTIL', lineup[7]);     
+                        if(this.getExpFantValSum(lineup) > this.getLineupSum()){  
+                          for(let i = 0; i < positions.length; i++)
+                            this.Lineup.set(positions[i], lineup[i]);
                         }
                       }
                     }
@@ -451,7 +469,8 @@ export class PlayersComponent implements OnInit {
       }
     }
 
-    this.printLineup();
+    this.refreshLineup();
+    this.updateTotals();
   } // Select Lineups
 
   /*
@@ -462,13 +481,30 @@ export class PlayersComponent implements OnInit {
   * with remaining players.
   */
 
- public trimCategories(optimValue: number): void {
-  if(!this.Lineup.has('PG')){ 
-    let iter = this.dispPG.values();
+ public trimCategories(): void {
+  let players_left = 0; 
+  let salary_filter = 0;
+  let optimValue = 7;
+
+  Array.from(this.Lineup.values()).filter(player => {
+    if(player.player === ''){
+      players_left++;
+    }
+  })
+
+  salary_filter = ((50000 - this.getSalSum(Array.from(this.Lineup.values())))/players_left) + 2000 - (2000 * ((8-players_left)/8));
+  optimValue = 7 + (8 - players_left);
+  salary_filter = 7500;
+
+  if(!this.Lineup.has('PG') || (this.Lineup.has('PG') && this.Lineup.get('PG').player === '')){ 
+    let _pgs: PlayerData[] = Array.from(this.dispPG.values()).filter((player) => player.active === 'Y' && player.price < salary_filter 
+                                                                    && player.val_ratio > 4.0).sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+
+
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(iter.next().value.player, iter.next().value);
+      playerMap.set(_pgs[i].player, _pgs[i]);
     }
 
     this.PG = playerMap;
@@ -476,12 +512,16 @@ export class PlayersComponent implements OnInit {
     this.PG = new Map<string, PlayerData>([[this.Lineup.get('PG').player, this.Lineup.get('PG')]])
   }
 
-  if(!this.Lineup.has('SG')){
-    let iter = this.dispSG.values();
+  if(!this.Lineup.has('SG') || (this.Lineup.has('SG') && this.Lineup.get('SG').player === '')){
+    let _sgs: PlayerData[] = Array.from(this.dispSG.values()).filter((player) => player.active === 'Y' 
+                                                                      && player.price < salary_filter 
+                                                                      && player.val_ratio > 4.0)
+                                                                      .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(iter.next().value.player, iter.next().value);
+      playerMap.set(_sgs[i].player, _sgs[i]);
     }
 
     this.SG = playerMap;
@@ -489,12 +529,16 @@ export class PlayersComponent implements OnInit {
     this.SG = new Map<string, PlayerData>([[this.Lineup.get('SG').player, this.Lineup.get('SG')]])
   }
 
-  if(!this.Lineup.has('SF')){
-    let iter = this.dispSF.values();
+  if(!this.Lineup.has('SF') || (this.Lineup.has('SF') && this.Lineup.get('SF').player === '')){
+    let _sfs: PlayerData[] = Array.from(this.dispSF.values()).filter((player) => player.active === 'Y' 
+                                                                      && player.price < salary_filter 
+                                                                      && player.val_ratio > 4.0)
+                                                                      .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(iter.next().value.player, iter.next().value);
+      playerMap.set(_sfs[i].player, _sfs[i]);
     }
 
     this.SF = playerMap;
@@ -502,12 +546,15 @@ export class PlayersComponent implements OnInit {
     this.SF = new Map<string, PlayerData>([[this.Lineup.get('SF').player, this.Lineup.get('SF')]])
   }
 
-  if(!this.Lineup.has('PF')){
-    let iter = this.dispPF.values();
+  if(!this.Lineup.has('PF') || (this.Lineup.has('PF') && this.Lineup.get('PF').player === '')){
+    let _pfs: PlayerData[] = Array.from(this.dispPF.values()).filter((player) => player.active === 'Y' 
+                                                                    && player.price < salary_filter 
+                                                                    && player.val_ratio > 4.0)
+                                                                    .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(iter.next().value.player, iter.next().value);
+      playerMap.set(_pfs[i].player, _pfs[i]);
     }
 
     this.PF = playerMap;
@@ -515,12 +562,16 @@ export class PlayersComponent implements OnInit {
     this.PF = new Map<string, PlayerData>([[this.Lineup.get('PF').player, this.Lineup.get('PF')]])
   }
 
-  if(!this.Lineup.has('C')){
-    let iter = this.dispC.values();
+  if(!this.Lineup.has('C') || (this.Lineup.has('C') && this.Lineup.get('C').player === '')){
+    let _cs: PlayerData[] = Array.from(this.dispC.values()).filter((player) => player.active === 'Y' 
+                                                                  && player.price <= salary_filter 
+                                                                  && player.val_ratio > 4.0)
+                                                                  .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(iter.next().value.player, iter.next().value);
+      playerMap.set(_cs[i].player, _cs[i]);
     }
 
     this.C = playerMap;
@@ -528,12 +579,16 @@ export class PlayersComponent implements OnInit {
     this.C = new Map<string, PlayerData>([[this.Lineup.get('C').player, this.Lineup.get('C')]])
   }
 
-  if(!this.Lineup.has('G')){
-    let iter = this.dispG.values();
+  if(!this.Lineup.has('G') || (this.Lineup.has('G') && this.Lineup.get('G').player === '')){
+    let _gs: PlayerData[] = Array.from(this.dispG.values()).filter((player) => player.active === 'Y' 
+                                                                    && player.price <= salary_filter 
+                                                                    && player.val_ratio > 4.0)
+                                                                    .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(iter.next().value.player, iter.next().value);
+      playerMap.set(_gs[i].player, _gs[i]);
     }
 
     this.G = playerMap;
@@ -541,12 +596,16 @@ export class PlayersComponent implements OnInit {
     this.G = new Map<string, PlayerData>([[this.Lineup.get('G').player, this.Lineup.get('G')]])
   }
 
-  if(!this.Lineup.has('F')){
-    let iter = this.dispF.values();
+  if(!this.Lineup.has('F') || (this.Lineup.has('F') && this.Lineup.get('F').player === '')){
+    let _fs: PlayerData[] = Array.from(this.dispF.values()).filter((player) => player.active === 'Y' 
+                                                                    && player.price <= salary_filter
+                                                                    && player.val_ratio > 4.0)
+                                                                    .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(iter.next().value.player, iter.next().value);
+      playerMap.set(_fs[i].player, _fs[i]);
     }
 
     this.F = playerMap;
@@ -554,12 +613,16 @@ export class PlayersComponent implements OnInit {
     this.F = new Map<string, PlayerData>([[this.Lineup.get('F').player, this.Lineup.get('F')]])
   }
 
-  if(!this.Lineup.has('UTIL')){
-    let iter = this.dispUTIL.values();
+  if(!this.Lineup.has('UTIL') || (this.Lineup.has('UTIL') && this.Lineup.get('UTIL').player === '')){
+    let _utils: PlayerData[] = Array.from(this.dispUTIL.values()).filter((player) => player.active === 'Y' 
+                                                                    && player.price < salary_filter 
+                                                                    && player.val_ratio > 4.0)
+                                                                    .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+
     let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(iter.next().value.player, iter.next().value);
+      playerMap.set(_utils[i].player, _utils[i]);
     }
 
     this.UTIL = playerMap;
@@ -570,14 +633,14 @@ export class PlayersComponent implements OnInit {
 }
 
 public refreshDataSource(): void {
-  this.pgDataSource = Array.from(this.dispPG.values());
-  this.sgDataSource  = Array.from(this.dispSG.values());
-  this.sfDataSource  = Array.from(this.dispSF.values());
-  this.pfDataSource  = Array.from(this.dispPF.values());
-  this.cDataSource  = Array.from(this.dispC.values());
-  this.gDataSource  = Array.from(this.dispG.values());
-  this.fDataSource = Array.from(this.dispF.values());;
-  this.utilDataSource  = Array.from(this.dispUTIL.values());
+  this.pgDataSource = Array.from(this.dispPG.values()).filter(player => player.active === 'Y');
+  this.sgDataSource  = Array.from(this.dispSG.values()).filter(player => player.active === 'Y');
+  this.sfDataSource  = Array.from(this.dispSF.values()).filter(player => player.active === 'Y');
+  this.pfDataSource  = Array.from(this.dispPF.values()).filter(player => player.active === 'Y');
+  this.cDataSource  = Array.from(this.dispC.values()).filter(player => player.active === 'Y');
+  this.gDataSource  = Array.from(this.dispG.values()).filter(player => player.active === 'Y');
+  this.fDataSource = Array.from(this.dispF.values()).filter(player => player.active === 'Y');
+  this.utilDataSource  = Array.from(this.dispUTIL.values()).filter(player => player.active === 'Y');
   this.refreshLineup();
   this.Loading = false;
 }
@@ -590,107 +653,52 @@ public lineupAdd(player: PlayerData, position: string): void{
   if(this.Lineup.size < 9){
     // If position is filled, re-add player to display list
     if(this.Lineup.has(position)){
-      this.Total_Cost -= this.Lineup.get(position).price;
-      this.Total_Fntsy_Pts -= this.Lineup.get(position).exp_fv;
-      this.dispPlayerAdd(this.Lineup.get(position), position);
+      if(this.Lineup.get(position).player !== ''){
+        this.togglePlayerStatus(this.Lineup.get(position), 'Y');
+      }
     }
-    // set new player at position
+
+    // set new player at position & update table totals
     this.Lineup.set(position, player);
-    this.Total_Cost += this.Lineup.get(position).price;
-    this.Total_Fntsy_Pts = Number((this.Total_Fntsy_Pts + this.Lineup.get(position).exp_fv).toFixed(2));
-    this.dispPlayerRemove(player, position);
+    this.updateTotals();
+
+    // remove player from tables
+    this.togglePlayerStatus(player, 'N');
     
+    // refresh data source
     this.refreshDataSource();
+
+    // prevent scroll bug with expansion panel
+    this.selected = false;
+    
+    // Move mat-tab to next category
+    if(this.tabGroup.selectedIndex != 7){
+      this.tabGroup.selectedIndex += 1;
+    } 
   }
 }
 
-public dispPlayerRemove(player: PlayerData, position: string){
-  // This should make a call to the database and flip the players selectable flag to N
-  // This should then refresh the lineup with a call to sortPlayers
+  public togglePlayerStatus(player: PlayerData, active: string): void {
+    if(this.dispSG.has(player.player))
+      this.dispSG.get(player.player).active = active;
 
-  switch(position){
-    case 'SG': {
-      this.dispSG.delete(player.player);
-      break;
-    }
-    case 'PG': {
-      this.dispPG.delete(player.player);
-      break;
-    }
-    case 'SF': {
-      this.dispSF.delete(player.player);
-      break;
-    }
-    case 'PF': {
-      this.dispPF.delete(player.player);
-      break;
-    }
-    case 'G': {
-      this.dispG.delete(player.player);
-      break;
-    }
-    case 'F': {
-      this.dispF.delete(player.player);
-      break;
-    }
-    case 'UTIL': {
-      this.dispUTIL.delete(player.player);
-      break;
-    }
-    default: {
-      break;
-    }
-  }
+    if(this.dispPG.has(player.player))
+      this.dispPG.get(player.player).active = active;
 
-  return;
-}
+    if(this.dispSF.has(player.player))
+      this.dispSF.get(player.player).active = active;
 
-public dispPlayerAdd(player: PlayerData, position: string): void {
-  switch(position){
-    case 'SG': {
-      this.dispSG.set(player.player, player);
-      break;
-    }
-    case 'PG': {
-      this.dispPG.set(player.player, player);
-      break;
-    }
-    case 'SF': {
-      this.dispSF.set(player.player, player);
-      break;
-    }
-    case 'PF': {
-      this.dispPF.set(player.player, player);
-      break;
-    }
-    case 'G': {
-      this.dispG.set(player.player, player);
-      break;
-    }
-    case 'F': {
-      this.dispF.set(player.player, player);
-      break;
-    }
-    case 'UTIL': {
-      this.dispUTIL.set(player.player, player);
-      break;
-    }
-    default: {
-      break;
-    }
-  }
-}
-// ********************
-// Print Selected Lineup
-// *******************
+    if(this.dispPF.has(player.player))
+      this.dispPF.get(player.player).active = active;
 
-  private printLineup(): void{
+    if(this.dispC.has(player.player))
+      this.dispC.get(player.player).active = active;
 
-    for(const [key, player] of this.Lineup.entries()){
-        console.log(`${player.player} - ${player.exp_fv}`)
-    }
+    if(this.dispG.has(player.player))
+      this.dispG.get(player.player).active = active;
 
-    console.log(`Lineup Total: ${this.getLineupSum().toFixed(2)}`)
+    if(this.dispF.has(player.player))
+      this.dispF.get(player.player).active = active;
   }
 
   private getLineupSum(): number {
@@ -702,7 +710,6 @@ public dispPlayerAdd(player: PlayerData, position: string): void {
 
     return sum;
   }
-
 
   private getExpFantValSum(players: PlayerData[]): number{
     let total: number = 0;
@@ -734,6 +741,11 @@ public dispPlayerAdd(player: PlayerData, position: string): void {
     }
 
     return true;
+  }
+
+  private updateTotals(){
+    this.Total_Cost = this.getSalSum(Array.from(this.Lineup.values()));
+    this.Total_Fntsy_Pts = Number(this.getLineupSum().toFixed(2));
   }
 
 }

@@ -1,3 +1,7 @@
+// **************
+// Table Styles
+// **************
+
 .mat-column-Name {
     width: 35%;
 }
@@ -81,6 +85,15 @@
 }
 
 
+.salary-excess {
+    color: red;
+}
+
+
+// *******************************
+// Player Detail Expansion Styles
+// *******************************
+
 table {
     width: 100%;
   }
@@ -108,10 +121,9 @@ table {
   
   .example-element-diagram {
     min-width: 80px;
-    border: 2px solid black;
-    padding: 8px;
+    padding: 0px;
     font-weight: lighter;
-    margin: 8px 0;
+    margin: 0px 0;
     height: 104px;
   }
   
@@ -128,3 +140,5 @@ table {
   .example-element-description-attribution {
     opacity: 0.5;
   }
+
+  

@@ -4,6 +4,8 @@ const team_data_route = require('./routes/team_data_route')
 const active_lineups_route = require('./routes/active_lineups_route')
 const injury_status_route = require('./routes/injury_status_route')
 const dk_data_route = require('./routes/dk_data')
+const https = require('https')
+
 const app = express()
 
 app.get('/player-data', player_data_route);
