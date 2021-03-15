@@ -15,11 +15,12 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table'
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
-import {MatCardModule} from '@angular/material/card';
-import {MatGridListModule} from '@angular/material/grid-list';
-import { MatButtonModule } from '@angular/material/button'
-
-
+import { MatCardModule} from '@angular/material/card';
+import { MatGridListModule} from '@angular/material/grid-list';
+import { MatButtonModule } from '@angular/material/button';
+import { StatColorDirective } from './player-card/shared/stat-color.directive'
+import { MatDialogModule } from '@angular/material/dialog';
+import { PlayerTableComponent } from './shared/components/player-table/player-table.component';
 
 
 @NgModule({
@@ -29,7 +30,9 @@ import { MatButtonModule } from '@angular/material/button'
     TopBarComponent,
     PlayersComponent,
     PlayerCardComponent,
-    TeamCardComponent
+    TeamCardComponent,
+    StatColorDirective,
+    PlayerTableComponent
   ],
   imports: [
     BrowserModule,
@@ -43,9 +46,11 @@ import { MatButtonModule } from '@angular/material/button'
     MatIconModule,
     MatCardModule,
     MatGridListModule,
-    MatButtonModule
+    MatButtonModule,
+    MatDialogModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  entryComponents: [ PlayerCardComponent ]
 })
 export class AppModule { }

@@ -2,30 +2,6 @@
 // Table Styles
 // **************
 
-.mat-column-Name {
-    width: 35%;
-}
-
-.mat-column-Team {
-    width: 15%;
-}
-
-.mat-column-Exp_Fant_Pts {
-    width: 23%;
-}
-
-.mat-column-Salary {
-    width: 12%;
-}
-
-.mat-column-Value {
-    width: 10%;
-}
-
-.mat-column-Add_Btn {
-    width: 5%;
-}
-
 .mat-column-L_Name {
     width: 35%;
 }
@@ -50,21 +26,11 @@
     width: 5%;
 }
 
-.add-icon:hover {
-    color: #3F51B5 !important;
-    cursor: pointer;
-}
-
 .remove-icon:hover {
     color: #3F51B5 !important;
     cursor: pointer;
 }
 
-.table-styles{
-    overflow-x: auto;
-    height: 575px;
-    max-height: 575px;
-}
 
 .card-styles{
     margin: 1%; 
@@ -89,6 +55,11 @@
     color: red;
 }
 
+.grid-container-main {
+    display: flex;
+    grid-template-columns: 10px 10px;
+    grid-template-rows: 100%;
+}
 
 // *******************************
 // Player Detail Expansion Styles
@@ -111,34 +82,36 @@ table {
   }
   
   .example-element-row td {
-    border-bottom-width: 0;
+    // border-bottom-width: 0;
   }
   
   .example-element-detail {
     overflow: hidden;
     display: flex;
+    grid-template-columns: 100%;
+    grid-template-rows: 100%;
   }
   
-  .example-element-diagram {
-    min-width: 80px;
-    padding: 0px;
-    font-weight: lighter;
-    margin: 0px 0;
-    height: 104px;
-  }
+//   .example-element-diagram {
+//     min-width: 80px;
+//     padding: 0px;
+//     font-weight: lighter;
+//     margin: 0px 0;
+//     height: 104px;
+//   }
   
-  .example-element-symbol {
-    font-weight: bold;
-    font-size: 40px;
-    line-height: normal;
-  }
+//   .example-element-symbol {
+//     font-weight: bold;
+//     font-size: 40px;
+//     line-height: normal;
+//   }
   
-  .example-element-description {
-    padding: 16px;
-  }
+//   .example-element-description {
+//     padding: 16px;
+//   }
   
-  .example-element-description-attribution {
-    opacity: 0.5;
-  }
+//   .example-element-description-attribution {
+//     opacity: 0.5;
+//   }
 
   

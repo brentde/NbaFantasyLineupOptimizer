@@ -51,6 +51,8 @@ const getPlayerData = async () => {
         player.age = Number(playerArr[2]);
   
         player.team = convertTeamName(playerArr[3]);
+        player.team_logo = `assets/shared/team_logo/${player.team}.png`
+        
         player.games_played = Number(playerArr[4]);
   
         player.games_started = Number(playerArr[5]);

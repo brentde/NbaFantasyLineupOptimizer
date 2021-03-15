@@ -4,6 +4,7 @@ class PlayerData {
   position = '';
   age = 0;
   team = '';
+  team_logo = '';
   games_played = 0.0;
   games_started = 0.0;
   minutes_played = 0.0;

@@ -1,53 +1,43 @@
-// *******************************
-// Player Detail Expansion Styles
-// *******************************
+.example-element-diagram {
+  min-width: 90px;
+  padding: 0px;
+  margin: 0px 0;
+  height: 114px;
+}
 
-table {
-    width: 100%;
-  }
-  
-  tr.example-detail-row {
-    height: 0;
-  }
-  
-  tr.example-element-row:not(.example-expanded-row):hover {
-    background: whitesmoke;
-  }
-  
-  tr.example-element-row:not(.example-expanded-row):active {
-    background: #efefef;
-  }
-  
-  .example-element-row td {
-    border-bottom-width: 0;
-  }
-  
-  .example-element-detail {
-    overflow: hidden;
-    display: flex;
-  }
-  
-  .example-element-diagram {
-    min-width: 80px;
-    border: 2px solid black;
-    padding: 8px;
-    font-weight: lighter;
-    margin: 8px 0;
-    height: 104px;
-  }
-  
-  .example-element-symbol {
-    font-weight: bold;
-    font-size: 40px;
-    line-height: normal;
-  }
-  
-  .example-element-description {
-    padding: 16px;
-  }
-  
-  .example-element-description-attribution {
-    opacity: 0.5;
-  }
+.mat-column-Team {
+  width: 12%;
+}
 
-  
+.mat-column-3P {
+  width: 12%;
+}
+
+.mat-column-2P {
+  width: 12%;
+}
+
+.mat-column-Assits {
+  width: 12%;
+}
+
+.mat-column-Rebounds {
+  width: 12%;
+}
+
+.mat-column-Steals {
+  width: 12%;
+}
+
+.mat-column-Blocks {
+  width: 12%;
+}
+
+.mat-column-Turnovers {
+  width: 14%;
+}
+
+.cancel-icon:hover{
+  color: #3F51B5 !important;
+  cursor: pointer;
+}

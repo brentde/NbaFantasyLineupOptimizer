@@ -3,12 +3,10 @@ import { PlayerData } from './../shared/models/PlayerData';
 import { TeamConversionService } from './../shared/services/team-conversion.service';
 import { DkData } from '../shared/models/DkData';
 import { TeamOppStats } from '../shared/models/TeamOppStats';
-import { Component, OnInit, ViewChild} from '@angular/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { MatTabGroup } from '@angular/material';
-import { DomSanitizer } from '@angular/platform-browser';
-
-
+import { MatTabGroup, MatTreeModule} from '@angular/material';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-players',
@@ -25,13 +23,13 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class PlayersComponent implements OnInit {
 
   @ViewChild(MatTabGroup, {static: false}) tabGroup: MatTabGroup;
+  public loadingSubject: Subject<boolean> = new Subject<boolean>();
 
   selected: boolean = false;
-  Loading: boolean = true;
+
   cur_index: number = 0;
   Total_Cost: number = 0;
   Total_Fntsy_Pts: number = 0;
-  displayedColumns: string[] = ["Name", "Team", "Exp_Fant_Pts", "Salary", "Value", "Add_Btn"]
   selectionDisplayedColumns: string[] = ["L_Name", "L_Team", "L_Exp_Fant_Pts", "L_Salary", "Remove_Btn"]
   dropDownColumns = ['Name', 'Team', 'Price', 'Exp Fantasy Val'];
 
@@ -80,7 +78,7 @@ export class PlayersComponent implements OnInit {
   public dispF: Map<string, PlayerData> = new Map<string, PlayerData>();
   public dispUTIL: Map<string, PlayerData> = new Map<string, PlayerData>();
 
-    // **********************************************
+  // **********************************************
   // Draftkings Categories for Lineup Manipulation
   // **********************************************
 
@@ -98,25 +96,16 @@ export class PlayersComponent implements OnInit {
   public Lineup: Map<string, PlayerData> = new Map<string, PlayerData>();
   
   constructor(private homeService: HomeService,
-    private TeamConversionService: TeamConversionService,
-    private sanitizer: DomSanitizer) { }
+    private TeamConversionService: TeamConversionService) { }
 
   ngOnInit() {
     this.getData();
     this.clearLineup();
+    this.emitLoadingEventToChild(true);
   }
 
-// toggleExpansion and set player photos
-public togglePlayerExpansion(player: PlayerData) {
-      if(!this.selected){
-        let objectURL = `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.id}.png`;
-        player.photo = this.sanitizer.bypassSecurityTrustUrl(objectURL);
-        this.expandedElement = player;
-        this.selected = true;
-      } else {
-        this.expandedElement = null;
-        this.selected = false;
-      }
+  public emitLoadingEventToChild(status: boolean): void {
+    this.loadingSubject.next(status);
   }
 
   // **************************
@@ -255,51 +244,55 @@ public togglePlayerExpansion(player: PlayerData) {
       if(opponent !== undefined){
 
         // Calculate 3pt Value
-        let exp3ptVal: number = ((player.three_pts_att * (player.three_pts_pct + ((opponent.three_pt_pct - Opp_Averages.three_pt_pct) / 100))) * 3.5)
+        player.three_pts_exp  = Number((player.three_pts_att * (player.three_pts_pct + ((opponent.three_pt_pct - Opp_Averages.three_pt_pct) / 100))).toFixed(2));
         // Calculate 2pt Value
-        let exp2ptVal: number = ((player.two_pts_att * (player.two_pts_pct + ((opponent.two_pt_pct - Opp_Averages.two_pt_pct) / 100))) * 2.0)
-        if(((exp3ptVal/3.5) + (exp2ptVal/2.0)) > 10.0){
+        player.two_pts_exp = Number((player.two_pts_att * (player.two_pts_pct + ((opponent.two_pt_pct - Opp_Averages.two_pt_pct) / 100))).toFixed(2));
+      
+
+        if((player.three_pts_exp + player.two_pts_exp) > 10.0){
           bonusProgress += 1;
         }
 
         // Calculate Assist Value
         let assistPct: number = player.assists/this.Team_Totals.get(player.team).assists;
-        let expAssistVal: number = (player.assists + assistPct * (opponent.assists - Opp_Averages.assists)) * 1.5;
+        player.assists_exp = Number((player.assists + assistPct * (opponent.assists - Opp_Averages.assists)).toFixed(2));
 
-        if((expAssistVal/1.5) >= 10.0){
+        if(player.assists_exp >= 10.0){
           bonusProgress += 1;
         }
+
         // Calculate Rebound Value
         let reboundPct: number = player.tot_rbds/Number(this.Team_Totals.get(player.team).tot_rebounds);
-        let expReboundVal: number = (player.tot_rbds + reboundPct * (opponent.tot_rebounds - Opp_Averages.tot_rebounds)) * 1.25;
+        player.rbs_exp = Number((player.tot_rbds + reboundPct * (opponent.tot_rebounds - Opp_Averages.tot_rebounds)).toFixed(2));
 
-        if((expReboundVal/1.25) >= 10.0){
+        if(player.rbs_exp >= 10.0){
           bonusProgress += 1;
         }
 
         // Calculate Steal Value
         let stealPct: number = player.steals/Number(this.Team_Totals.get(player.team).steals);
-        let expStealVal: number = (player.steals + stealPct * (opponent.steals - Opp_Averages.steals)) * 2;
+        player.steals_exp = Number((player.steals + stealPct * (opponent.steals - Opp_Averages.steals)).toFixed(2));
 
 
-        if((expStealVal/2) >= 10.0){
+        if(player.steals_exp  >= 10.0){
           bonusProgress += 1;
         }
 
         // Calculate Block Value
         let blockPct: number = player.blocks/Number(this.Team_Totals.get(player.team).blocks);
-        let expBlockVal: number = (player.blocks + blockPct * (opponent.blocks - Opp_Averages.blocks)) * 2;
+        player.blocks_exp = Number((player.blocks + blockPct * (opponent.blocks - Opp_Averages.blocks)).toFixed(2));
 
 
-        if((expBlockVal/2) >= 10.0){
+        if(player.blocks_exp  >= 10.0){
           bonusProgress += 1;
         }
 
         // Calculate Turnover Value
         let turnoverPct: number = player.turnovers/Number(this.Team_Totals.get(player.team).turnovers);
-        let expTurnoverVal: number = (player.turnovers + turnoverPct * (opponent.turnovers - Opp_Averages.turnovers)) * 0.5;
+        player.turnovers_exp = Number((player.turnovers + turnoverPct * (opponent.turnovers - Opp_Averages.turnovers)).toFixed(2));
 
-        let expFantasyPts: number = exp2ptVal + exp3ptVal + expAssistVal + expBlockVal + expReboundVal + expStealVal - expTurnoverVal;
+        let expFantasyPts: number = (player.two_pts_exp * 2) + player.three_pts_exp * 3.5 +  player.assists_exp  * 1.5 + 
+                                    player.blocks_exp * 2.0 + player.rbs_exp * 1.25 +  player.steals_exp * 2.0 -  player.turnovers_exp  * 0.5;
 
         if(bonusProgress >= 2){
           expFantasyPts += 1.5;
@@ -358,7 +351,7 @@ public togglePlayerExpansion(player: PlayerData) {
             let positions: string[] = DK_Player.Roster_position.split('/')
 
             positions.forEach(position => {
-              this.insertIntoCategMap(position, this.createNewPlayer(player, position));
+              this.insertIntoCategMap(position, player);
             })
           }
         }
@@ -369,16 +362,11 @@ public togglePlayerExpansion(player: PlayerData) {
     this.refreshLineup();
   }
 
+  // Create Copy of Player with updated category position and status
+
   private createNewPlayer(player: PlayerData, position: string): PlayerData {
-    let ret_player: PlayerData = new PlayerData();
-    ret_player.player = player.player;
-    ret_player.id = player.id;
+    let ret_player: PlayerData = JSON.parse(JSON.stringify(player));
     ret_player.position = position;
-    ret_player.val_ratio = player.val_ratio;
-    ret_player.player = player.player;
-    ret_player.price = player.price;
-    ret_player.team = player.team;
-    ret_player.exp_fv = player.exp_fv;
     ret_player.active = 'Y';
     return ret_player;
   }
@@ -389,23 +377,23 @@ public togglePlayerExpansion(player: PlayerData) {
   
   public insertIntoCategMap(category: string, player: PlayerData){
     if(category === 'PG'){
-        this.dispPG.set(player.player, player);
-        this.dispG.set(player.player, player);
+        this.dispPG.set(player.player, this.createNewPlayer(player, category));
+        this.dispG.set(player.player, this.createNewPlayer(player, 'G'));
       } else if(category === 'SG'){
-        this.dispSG.set(player.player, player);
-        this.dispG.set(player.player, player);
+        this.dispSG.set(player.player, this.createNewPlayer(player, category));
+        this.dispG.set(player.player, this.createNewPlayer(player, 'G'));
     } else if(category === 'SF'){
-        this.dispSF.set(player.player, player);
-        this.dispF.set(player.player, player);
+        this.dispSF.set(player.player, this.createNewPlayer(player, category));
+        this.dispF.set(player.player, this.createNewPlayer(player, 'F'));
     } else if(category === 'PF'){
-        this.dispPF.set(player.player, player);
-        this.dispF.set(player.player, player);
+        this.dispPF.set(player.player, this.createNewPlayer(player, category));
+        this.dispF.set(player.player, this.createNewPlayer(player, 'F'));
     } else if(category === 'C'){
-        this.dispC.set(player.player, player);
+        this.dispC.set(player.player, this.createNewPlayer(player, category));
     };
 
-    this.dispUTIL.set(player.player, player);
-  } // insertIntoCategMap
+    this.dispUTIL.set(player.player, this.createNewPlayer(player, 'UTIL'));
+  } 
   
   public clearLineup() {
     let positions = ['PG', 'SG', 'SF', 'PF', 'C', 'G', 'F', 'UTIL'];
@@ -633,6 +621,7 @@ public togglePlayerExpansion(player: PlayerData) {
 }
 
 public refreshDataSource(): void {
+  this.emitLoadingEventToChild(true);
   this.pgDataSource = Array.from(this.dispPG.values()).filter(player => player.active === 'Y');
   this.sgDataSource  = Array.from(this.dispSG.values()).filter(player => player.active === 'Y');
   this.sfDataSource  = Array.from(this.dispSF.values()).filter(player => player.active === 'Y');
@@ -642,24 +631,26 @@ public refreshDataSource(): void {
   this.fDataSource = Array.from(this.dispF.values()).filter(player => player.active === 'Y');
   this.utilDataSource  = Array.from(this.dispUTIL.values()).filter(player => player.active === 'Y');
   this.refreshLineup();
-  this.Loading = false;
+  this.emitLoadingEventToChild(false);
 }
 
 public refreshLineup(): void {
   this.selectionTableDataSource =  Array.from(this.Lineup.values());
 }
 
-public lineupAdd(player: PlayerData, position: string): void{
+public lineupAdd(player_data: any): void{
+  let player: PlayerData = player_data.player;
+
   if(this.Lineup.size < 9){
     // If position is filled, re-add player to display list
-    if(this.Lineup.has(position)){
-      if(this.Lineup.get(position).player !== ''){
-        this.togglePlayerStatus(this.Lineup.get(position), 'Y');
+    if(this.Lineup.has(player.position)){
+      if(this.Lineup.get(player.position).player !== ''){
+        this.togglePlayerStatus(this.Lineup.get(player.position), 'Y');
       }
     }
 
     // set new player at position & update table totals
-    this.Lineup.set(position, player);
+    this.Lineup.set(player.position, player);
     this.updateTotals();
 
     // remove player from tables
@@ -699,6 +690,8 @@ public lineupAdd(player: PlayerData, position: string): void{
 
     if(this.dispF.has(player.player))
       this.dispF.get(player.player).active = active;
+
+    this.dispUTIL.get(player.player).active = active;
   }
 
   private getLineupSum(): number {
@@ -747,5 +740,4 @@ public lineupAdd(player: PlayerData, position: string): void{
     this.Total_Cost = this.getSalSum(Array.from(this.Lineup.values()));
     this.Total_Fntsy_Pts = Number(this.getLineupSum().toFixed(2));
   }
-
 }

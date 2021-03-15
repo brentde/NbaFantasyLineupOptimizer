@@ -1,0 +1,38 @@
+.table-styles{
+    overflow-x: auto;
+    height: 575px;
+    max-height: 575px;
+}
+
+.add-icon:hover {
+    color: #3F51B5 !important;
+    cursor: pointer;
+}
+
+// **************
+// Column Widths
+// **************
+
+.mat-column-Name {
+    width: 35%;
+}
+
+.mat-column-Team {
+    width: 15%;
+}
+
+.mat-column-Exp_Fant_Pts {
+    width: 23%;
+}
+
+.mat-column-Salary {
+    width: 12%;
+}
+
+.mat-column-Value {
+    width: 10%;
+}
+
+.mat-column-Add_Btn {
+    width: 5%;
+}

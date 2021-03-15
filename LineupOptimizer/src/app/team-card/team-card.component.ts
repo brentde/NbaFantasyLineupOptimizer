@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { PlayerData } from './../shared/models/PlayerData';
+import { Component, OnInit, Input } from '@angular/core';
+
+
 
 @Component({
   selector: 'app-team-card',
@@ -7,9 +10,10 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TeamCardComponent implements OnInit {
 
+  @Input() player: PlayerData; 
+
   constructor() { }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
 }

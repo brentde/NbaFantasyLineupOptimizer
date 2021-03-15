@@ -1,5 +1,11 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { PlayerData } from '../shared/models/PlayerData';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { DomSanitizer } from '@angular/platform-browser';
+
+export interface PlayerDialog {
+  player: PlayerData;
+}
 
 @Component({
   selector: 'app-player-card',
@@ -8,11 +14,28 @@ import { PlayerData } from '../shared/models/PlayerData';
 })
 
 export class PlayerCardComponent implements OnInit {
+  public playerDataSource: PlayerData [] = []; 
+  displayedColumns: string[] = ["Team", "3P", "2P", "Rebounds", "Assists", "Steals", "Blocks", "Turnovers"]
 
-  @Input() player: PlayerData;
+  constructor( @Inject(MAT_DIALOG_DATA) public data: PlayerDialog,
+              private dialogRef: MatDialogRef<PlayerCardComponent>,
+              private sanitizer: DomSanitizer) {
+              
+  }
 
-  constructor() {}
+  ngOnInit() {
+    this.playerDataSource.push(this.data.player);
+    this.setPlayerPhoto();
+  }
 
-  ngOnInit() {}
+  public dialogClose(){
+    this.dialogRef.close("Success");
+  }
+
+  private setPlayerPhoto(): void {
+    const objectURL = `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${this.playerDataSource[0].id}.png`;
+    this.playerDataSource[0].photo = this.sanitizer.bypassSecurityTrustUrl(objectURL);
+  }
 
 }
+
