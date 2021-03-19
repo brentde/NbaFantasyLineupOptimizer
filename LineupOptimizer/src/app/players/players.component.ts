@@ -5,7 +5,7 @@ import { DkData } from '../shared/models/DkData';
 import { TeamOppStats } from '../shared/models/TeamOppStats';
 import { Component, OnInit, ViewChild, Output, EventEmitter} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { MatTabGroup, MatTreeModule} from '@angular/material';
+import { MatTabGroup } from '@angular/material';
 import { Subject } from 'rxjs';
 
 @Component({

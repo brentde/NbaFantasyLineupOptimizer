@@ -33,8 +33,7 @@ export class PlayerCardComponent implements OnInit {
   }
 
   private setPlayerPhoto(): void {
-    const objectURL = `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${this.playerDataSource[0].id}.png`;
-    this.playerDataSource[0].photo = this.sanitizer.bypassSecurityTrustUrl(objectURL);
+    // this.playerDataSource[0].photo = this.sanitizer.bypassSecurityTrustUrl(this.playerDataSource[0].photoUrl);
   }
 
 }
