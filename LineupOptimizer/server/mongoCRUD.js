@@ -3,6 +3,8 @@ const dbName = 'LineupOptimizer';
 const dbService = require('./db.service');
 const MatchupSchema = require('./models/Matchup');
 const PlayerSchema = require('./models/Player');
+const { convertActionBinding } = require('@angular/compiler/src/compiler_util/expression_converter');
+const { consoleTestResultHandler } = require('tslint/lib/test');
 
 
 function refreshPlayerData() {
@@ -24,7 +26,7 @@ function refreshPlayerData() {
                             console.log('Error: ', err);
                             reject();
                         } else {
-                            console.log(`${player.name} Updated!`);
+                          //  console.log(`${player.name} Updated!`);
                         }
                     })
                     
@@ -34,7 +36,7 @@ function refreshPlayerData() {
                           console.log(err);
                           reject();      
                         } else {
-                           console.log(`${player.name} Historical Data Added!`); 
+                         //  console.log(`${player.name} Historical Data Added!`); 
                         }
                     })
                 })
@@ -63,7 +65,7 @@ function refreshTeamData(){
                             console.log(err);
                             reject();
                         } else {
-                            console.log(`${team.name} Inserted!`);
+                          //  console.log(`${team.name} Inserted!`);
                         }
                     })
                 })
@@ -153,7 +155,7 @@ function updateDkData() {
 
 
                     dkData.positions.split('/').forEach(position => {
-                        const playerQuery = {name: dkData.name, position: position};
+                        const playerQuery = {name: dkData.name, team: dkData.team, position: position};
                         const filter = {$set: {price: dkData.price, active: 'Y'}};
                         let playerPromise_0 = Player.findOne(playerQuery);
                         
@@ -170,12 +172,12 @@ function updateDkData() {
                                     }
                                 })
                             } else if(!player_0) {
-                                let playerPromise_1 = Player.findOne({name: dkData.name});
+                                let playerPromise_1 = Player.findOne({name: dkData.name, team: dkData.team});
                                 playerPromise_1.then(player_1 => {
                                     if(player_1){
                                         let newPlayer = new PlayerSchema();
                                         newPlayer = JSON.parse(JSON.stringify(player_1));
-                                        newPlayer._id = Math.random() * 1000000000;
+                                        newPlayer._id = Math.floor(Math.random() * 1000000000);
                                         newPlayer.position = position;
                                         newPlayer.price = dkData.price;
                                         newPlayer.active = 'Y';
@@ -204,6 +206,16 @@ function updateDkData() {
     })
 }
 
+function getPlayers(){
+    return new Promise((resolve, reject) => {
+       const database = dbService.db.db(dbName);
+       const collection = database.collection('Player');
+       const query = {active: 'Y', injured: 'N'};
+       resolve(collection.find(query).toArray());
+    })
+}
+
+
 function getPlayer(id){
     const database = dbService.db.db(dbName);
     const collection = database.collection('Player');
@@ -217,6 +229,15 @@ function getAllActiveByPosition(position){
     const query = {active: 'Y', injured: 'N', position: position};
     return collection.find(query);
 }
+function getTeams(){
+    return new Promise((resolve, reject) => {
+        const colName = 'Team';
+        const database = dbService.db.db(dbName);
+        const collection = database.collection(colName);
+        const query = {};
+        resolve(collection.find().toArray());
+    })
+}
 
 function getTeam(id){
     const database = dbService.db.db(dbName);
@@ -226,10 +247,12 @@ function getTeam(id){
 }
 
 function getMatchups(){
-    const database = dbService.db.db(dbName);
-    const collection = database.collection('Matchup');
-    const query = {};
-    return collection.find(query);
+    return new Promise((resolve, reject) => {
+        const database = dbService.db.db(dbName);
+        const collection = database.collection('Matchup');
+        const query = {};
+        resolve(collection.find(query).toArray());
+    })
 }
 
 exports.refreshPlayerData = refreshPlayerData;
@@ -240,5 +263,7 @@ exports.getPlayer = getPlayer;
 exports.getAllActiveByPosition = getAllActiveByPosition;
 exports.getTeam = getTeam;
 exports.getMatchups = getMatchups;
+exports.getPlayers = getPlayers;
+exports.getTeams = getTeams;
   
   

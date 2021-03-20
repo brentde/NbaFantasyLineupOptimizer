@@ -1,4 +1,3 @@
-import { PlayerData } from './../shared/models/PlayerData';
 import { Component, OnInit, Input } from '@angular/core';
 
 
@@ -9,8 +8,6 @@ import { Component, OnInit, Input } from '@angular/core';
   styleUrls: ['./team-card.component.scss']
 })
 export class TeamCardComponent implements OnInit {
-
-  @Input() player: PlayerData; 
 
   constructor() { }
 

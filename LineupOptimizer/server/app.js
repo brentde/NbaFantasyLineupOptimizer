@@ -1,13 +1,8 @@
-const player_data_route = require('./routes/player_data_route');
-const team_data_route = require('./routes/team_data_route');
-const active_lineups_route = require('./routes/active_lineups_route');
-const injury_status_route = require('./routes/injury_status_route');
-const dk_data_route = require('./routes/dk_data');
 const config = require('./config/config');
 const express = require('express');
 const app = express()
 const dbService = require('./db.service');
-const { refreshPlayerData, refreshTeamData, updateInjuries, updateDkData, getPlayer, getAllActiveByPosition, getTeam, getMatchups } = require('./mongoCRUD')
+const { refreshPlayerData, refreshTeamData, updateInjuries, updateDkData, getPlayer, getAllActiveByPosition, getTeam, getMatchups, getPlayers, getTeams } = require('./mongoCRUD')
 
 
 // MongoDB Connect
@@ -19,21 +14,25 @@ dbService.connect().then(() => {
       resolve();
     })
   }).then(() => {
-
+    console.log("Synchronizing MongoDB. This may take a minute....")
     // Refresh player data on Sunday
     if(new Date().getDay() === 7){
       refreshPlayerData().then(() => {
         refreshTeamData().then(() => {
            updateDkData().then(() => {
-            updateInjuries().then(() => {})
+            updateInjuries().then(() => {
+              console.log("Synchronization complete!")
+            })
           })
         })
       })
     } else {
       updateDkData().then(() => {
-        updateInjuries().then(() => {})
+        updateInjuries().then(() => {
+          console.log("Synchronization Complete!");
+        })
       })
-    }
+     }
   })
 })
 .catch((err) => {
@@ -41,33 +40,40 @@ dbService.connect().then(() => {
   process.exit(1);  
 })
 
-// **************
-// Angular APIs
-// **************
 
-app.get('/player-data', player_data_route);
-app.get('/team-opp-data', team_data_route);
-app.get('/active-lineups', active_lineups_route);
-app.get('/injury-status', injury_status_route);
-app.get('/dk-data', dk_data_route);
-app.get('/get-player', (req, res) => {
-    getPlayer(req.query.id).then(player => {
-      res.send(player);
-    })
-})
-app.get('/get-all-active-by-position', (req, res) => {
-  getAllActiveByPosition(req.query.position).then(players => {
+// app.get('/get-player', (req, res) => {
+//     getPlayer(req.query.id).then(player => {
+//       res.send(player);
+//     })
+// })
+
+// app.get('/get-all-active-by-position', (req, res) => {
+//   getAllActiveByPosition(req.query.position).then(players => {
+//     res.send(players);
+//   })
+// })
+
+// app.get('/get-team', (req, res) => {
+//   getTeam(req.query.id).then(team => {
+//     res.send(team);
+//   })
+// })
+
+app.get('/get-players', (req, res) => {
+  getPlayers().then(players => {
     res.send(players);
   })
 })
-app.get('/get-team', (req, res) => {
-  getTeam(req.query.id).then(team => {
-    res.send(team);
-  })
-})
-app.get('get-matchups', (req, res) => {
+
+app.get('/get-matchups', (req, res) => {
   getMatchups().then(matchups => {
     res.send(matchups);
+  })
+})
+
+app.get('/get-teams', (req, res) => {
+  getTeams().then(teams => {
+    res.send(teams);
   })
 })
 

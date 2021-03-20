@@ -1,8 +1,8 @@
 import { Observable, Subscription } from 'rxjs';
 import { PlayerCardComponent } from './../../../player-card/player-card.component';
-import { PlayerData } from './../../models/PlayerData';
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Player } from '../../models/Player';
 
 
 @Component({
@@ -12,7 +12,8 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class PlayerTableComponent implements OnInit {
 
-  @Input() dataSource: PlayerData[];
+  // @Input() dataSource: PlayerData[];
+  @Input() dataSource: Player[];
   @Input() loadingEvent: Observable<any>;
   @Output() addPlayerEvent = new EventEmitter<any>();
 
@@ -38,17 +39,27 @@ export class PlayerTableComponent implements OnInit {
   // Open Player Dialog
   // ***********************
 
-  public openPlayerDialog(nba_player: PlayerData) {
+  // public openPlayerDialog(nba_player: PlayerData) {
+  //   this.dialog.open(PlayerCardComponent, {
+  //     width: '970px',
+  //     height: '180px',
+  //     data: {player: nba_player}
+  //   }).afterClosed().subscribe(() => {})
+  // }
+
+  // public addPlayer(player: PlayerData){   
+  //   this.addPlayerEvent.emit({player})
+  // }
+
+  public openPlayerDialog(nbaPlayer: Player) {
     this.dialog.open(PlayerCardComponent, {
       width: '970px',
       height: '180px',
-      data: {player: nba_player}
+      data: {player: nbaPlayer}
     }).afterClosed().subscribe(() => {})
   }
 
-  public addPlayer(player: PlayerData){   
+  public addPlayer(player: Player){   
     this.addPlayerEvent.emit({player})
   }
-
-  
 }

@@ -39,7 +39,7 @@ exports.getPlayerData = async () => {
         let playerArr = playerData.slice(beg, end);
         let player = new Player();
 
-        player._id = Math.random() * 1000000000;
+        player._id = Math.floor(Math.random() * 1000000000);
         // Set creation date so that we can get latest data
         player.creationDate = new Date();
 
@@ -47,7 +47,7 @@ exports.getPlayerData = async () => {
     
         if(playerIds.has(player.name)){
             player.playerId = playerIds.get(player.name)
-            player.photoUrl = `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player._id}.png`;
+            player.photoUrl = `https://ak-static.cms.nba.com/wp-content/uploads/headshots/nba/latest/260x190/${player.playerId}.png`;
          } else {
             player.playerId = Math.random() * 1000000;
             player.photoUrl = 'assets/shared/team_logos/default.png';
@@ -68,7 +68,7 @@ exports.getPlayerData = async () => {
         player.threePct = Number(playerArr[12]);
   
         player.twosMade = Number(playerArr[13]);
-        player.twoAtt = Number(playerArr[14]);
+        player.twosAtt = Number(playerArr[14]);
   
         player.twoPct = Number(playerArr[15]);
         player.effFgPct = Number(playerArr[16]);
@@ -113,7 +113,7 @@ exports.getTeamData = async () => {
 
     try {
         const { data } = await axios.get(
-              'http://www.hoopsstats.com/basketball/fantasy/nba/opponentstats/21/1/fgpct/1-1'
+              'http://www.hoopsstats.com/basketball/fantasy/nba/opponentstats/21/1/fgpct/1-3'
         );
         const $ = cheerio.load(data);
         const teamData = [];
@@ -132,6 +132,7 @@ exports.getTeamData = async () => {
         let teamObj = new Team();
 
         teamObj.name = convertTeamName_2(teamObjData[1]);
+        teamObj.gamesPlayed = teamObjData[2];
         teamObj.points = Number(teamObjData[4]);
         teamObj.rebounds = Number(teamObjData[5]);
         teamObj.assists = Number(teamObjData[6]);
@@ -269,7 +270,8 @@ exports.getDkData = () => {
 
         //   i += 8;
         // }
-        allDkData.push(dkData);
+        if(dkData.price >= 3200)
+          allDkData.push(dkData);
       })
 
         resolve(allDkData);

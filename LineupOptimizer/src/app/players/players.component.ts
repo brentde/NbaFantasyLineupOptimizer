@@ -1,12 +1,12 @@
-import { HomeService } from './../home/home.service';
-import { PlayerData } from './../shared/models/PlayerData';
-import { TeamConversionService } from './../shared/services/team-conversion.service';
-import { DkData } from '../shared/models/DkData';
-import { TeamOppStats } from '../shared/models/TeamOppStats';
+import { MongodbService } from './../shared/services/mongodb.service';
 import { Component, OnInit, ViewChild, Output, EventEmitter} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTabGroup } from '@angular/material';
 import { Subject } from 'rxjs';
+import { Player } from '../shared/models/Player';
+import { Matchup } from '../shared/models/Matchup';
+import { Team } from './../shared/models/Team';
+
 
 @Component({
   selector: 'app-players',
@@ -26,440 +26,293 @@ export class PlayersComponent implements OnInit {
   public loadingSubject: Subject<boolean> = new Subject<boolean>();
 
   selected: boolean = false;
-
   cur_index: number = 0;
-  Total_Cost: number = 0;
-  Total_Fntsy_Pts: number = 0;
+  totalCost: number = 0;
+  totalFntsyPts: number = 0;
   selectionDisplayedColumns: string[] = ["L_Name", "L_Team", "L_Exp_Fant_Pts", "L_Salary", "Remove_Btn"]
   dropDownColumns = ['Name', 'Team', 'Price', 'Exp Fantasy Val'];
 
-  
   //*************
   // Table Data
   //************
 
-  pgDataSource: PlayerData[];
-  sgDataSource: PlayerData[];
-  sfDataSource: PlayerData[];
-  pfDataSource: PlayerData[];
-  cDataSource: PlayerData[];
-  gDataSource: PlayerData[];
-  fDataSource: PlayerData[];
-  utilDataSource: PlayerData[];
-  selectionTableDataSource: PlayerData[];
-  expandedElement: PlayerData | null;
-
-  // All Player Statistics
-  public Players: Map<string, PlayerData> = new Map<string, PlayerData>();
-
-  // All Team Defensive Stat Data
-  public Teams: Map<string, TeamOppStats> = new Map<string, TeamOppStats>();
-
-  // Matchup Info
-  public MatchUps: Map<string, string> = new Map<string, string>();
-
-  // Sll DK Data
-  public DK: Map<string, DkData> = new Map<string, DkData>();
-
-  // This Map holds data on team stat totals which are used to determine how much 
-  // of the teams overall stats a specific player contributes to
-  public Team_Totals: Map<string, TeamOppStats> = new Map<string, TeamOppStats>();
+  pgDataSource: Player[];
+  sgDataSource: Player[];
+  sfDataSource: Player[];
+  pfDataSource: Player[];
+  cDataSource: Player[];
+  gDataSource: Player[];
+  fDataSource: Player[];
+  utilDataSource: Player[];
+  selectionTableDataSource: Player[];
 
   // **********************************************
   // Draftkings Categories for Display Purposes
   // **********************************************
 
-  public dispPG: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public dispSG: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public dispSF: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public dispPF: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public dispC: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public dispG: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public dispF: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public dispUTIL: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public dispPG: Map<string, Player> = new Map<string, Player>();
+  public dispSG: Map<string, Player> = new Map<string, Player>();
+  public dispSF: Map<string, Player> = new Map<string, Player>();
+  public dispPF: Map<string, Player> = new Map<string, Player>();
+  public dispC: Map<string, Player> = new Map<string, Player>();
+  public dispG: Map<string, Player> = new Map<string, Player>();
+  public dispF: Map<string, Player> = new Map<string, Player>();
+  public dispUTIL: Map<string, Player> = new Map<string, Player>();
 
   // **********************************************
   // Draftkings Categories for Lineup Manipulation
   // **********************************************
 
-  public  PG: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public  SG: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public  SF: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public  PF: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public  C: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public  G: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public  F: Map<string, PlayerData> = new Map<string, PlayerData>();
-  public  UTIL: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public PG: Map<string, Player> = new Map<string, Player>();
+  public SG: Map<string, Player> = new Map<string, Player>();
+  public SF: Map<string, Player> = new Map<string, Player>();
+  public PF: Map<string, Player> = new Map<string, Player>();
+  public C: Map<string, Player> = new Map<string, Player>();
+  public G: Map<string, Player> = new Map<string, Player>();
+  public F: Map<string, Player> = new Map<string, Player>();
+  public UTIL: Map<string, Player> = new Map<string, Player>();
 
   // Key: Expected Fantasy Points, Value: Array of Players
 
-  public Lineup: Map<string, PlayerData> = new Map<string, PlayerData>();
+  // public Lineup: Map<string, PlayerData> = new Map<string, PlayerData>();
+  public lineup: Map<string, Player> = new Map<string, Player>();
+
+  public players: Player[] = [];
+  public teams: Map<string, Team> = new Map<string, Team>();
+  public matchups: Map<string, Matchup> = new Map<string, Matchup>();
   
-  constructor(private homeService: HomeService,
-    private TeamConversionService: TeamConversionService) { }
+  constructor(private mongoService: MongodbService){}
 
   ngOnInit() {
-    this.getData();
+    this.getAllData();
     this.clearLineup();
     this.emitLoadingEventToChild(true);
+  }
+
+  public getAllData() {
+    this.mongoService.getTeams().subscribe(teams => {
+      // set teams map 
+      teams.forEach(team => {
+        this.teams.set(team.name, team);
+      })
+
+      // set matchups map
+      this.mongoService.getMatchups().subscribe(matchups => {
+        
+        matchups.forEach(matchup => {
+          // May need to add away team to this is all, but that will complicate the top bar display
+          this.matchups.set(matchup.home, matchup);  
+        })
+
+          // get players and calculate value
+        this.mongoService.getPlayers().subscribe(players => {
+          players.forEach(player => {
+            this.calcFV(player);
+          })
+
+          this.refreshDataSource();
+        })
+      })
+    })
   }
 
   public emitLoadingEventToChild(status: boolean): void {
     this.loadingSubject.next(status);
   }
 
-  // **************************
-  // Retrieve and set all data
-  // **************************
+  private calcFV(player: Player): void {
+    let averages: Team = this.getOppAverages();
+ 
+    let bonusProgress: number = 0;
+    let oppTeam: Team;
 
-  private getData(): void {
-    this.homeService.getPlayerData().subscribe(playerData => {
-        playerData.forEach(player => {
-          this.Players.set(player.player, player);
-        });
+    if(this.matchups.get(player.team)){
+      // Player is part of the home team, so get away team stats
+      oppTeam = this.teams.get(this.matchups.get(player.team).away);
+    } else {
 
-        this.getInjuredPlayers();
-        this.setTeamTotals();
-        this.getTeamData();
-    });
-  }
+      // Player is from the away team, get home team stats
+      for(const [key, matchup] of this.matchups.entries()){
+        if(matchup.away == player.team){
+          oppTeam = this.teams.get(matchup.home);
+        }
+      }
+    }
 
-  // ************************
-  // Get Injured Players
-  // ************************
-
-  private getInjuredPlayers(): void {
-    this.homeService.getInjuredPlayersData().subscribe(inj_players => {
-      let injPlayers: string[] = inj_players;
-
-      // If a player is injured, remove the player for the list
-      injPlayers.forEach(player => {
-        this.Players.delete(player);
-      })
-    })
-  } // getInjuredPlayers
-
-  // ************************
-  // Set Team Totals
-  // ************************
-
-  private setTeamTotals(): void{
-    // Iterate though Players read in from bbref
-    this.Players.forEach(player => {
-      let team_totals: TeamOppStats;
-
-      // If team exist, get team and keep adding stats to totals
-      if(this.Team_Totals.has(player.team)){
-        team_totals = this.Team_Totals.get(player.team);
-      } else {
-        team_totals = new TeamOppStats();
+      // Calculate 3pt Value
+      player.threesExp  = Number((player.threesAtt * (player.threePct + ((oppTeam.threePct - averages.threePct) / 100))).toFixed(2));
+      // Calculate 2pt Value
+      player.twosExp  = Number((player.twosAtt * (player.twoPct + ((oppTeam.twoPct - averages.twoPct) / 100))).toFixed(2));
+    
+      if((player.threesExp + player.twosExp + player.ftMade) > 10.0){
+        bonusProgress += 1;
       }
 
-      // Accumulate team stats
-      team_totals.steals += player.steals;
-      team_totals.blocks += player.blocks;
-      team_totals.tot_rebounds += player.tot_rbds;
-      team_totals.turnovers += player.turnovers;
-      team_totals.assists += player.assists;
-      
-      // set or update team total stats
-      this.Team_Totals.set(player.team, team_totals)
+      // Calculate Assist Value
+      let assistPct: number = player.assists/this.teams.get(player.team).assists;
+      player.assistsExp = Number((player.assists + assistPct * (oppTeam.assists - averages.assists)).toFixed(2));
+
+      if(player.assistsExp >= 10.0){
+        bonusProgress += 1;
+      }
+
+      // Calculate Rebound Value
+      let reboundPct: number = player.totRbds/Number(this.teams.get(player.team).totRbds);
+      player.rbdsExp = Number((player.totRbds + reboundPct * (oppTeam.totRbds - averages.totRbds)).toFixed(2));
+
+      if(player.rbdsExp >= 10.0){
+        bonusProgress += 1;
+      }
+
+      // Calculate Steal Value
+      let stealPct: number = player.steals/Number(this.teams.get(player.team).steals);
+      player.stealsExp = Number((player.steals + stealPct * (oppTeam.steals - averages.steals)).toFixed(2));
+
+
+      if(player.stealsExp  >= 10.0){
+        bonusProgress += 1;
+      }
+
+      // Calculate Block Value
+      let blockPct: number = player.blocks/Number(this.teams.get(player.team).blocks);
+      player.blocksExp = Number((player.blocks + blockPct * (oppTeam.blocks - averages.blocks)).toFixed(2));
+
+
+      if(player.blocksExp  >= 10.0){
+        bonusProgress += 1;
+      }
+
+      // Calculate Turnover Value
+      let turnoverPct: number = player.turnovers/Number(this.teams.get(player.team).turnovers);
+      player.turnoversExp = Number((player.turnovers + turnoverPct * (oppTeam.turnovers - averages.turnovers)).toFixed(2));
+
+      let expFantasyPts: number = (player.twosExp * 2) + player.threesExp * 3.5 +  player.assistsExp  * 1.5 + player.ftMade + 
+                                  player.blocksExp * 2.0 + player.rbdsExp * 1.25 +  player.stealsExp * 2.0 -  (player.turnoversExp + player.pf)  * 0.5;
+
+      if(bonusProgress >= 2){
+        expFantasyPts += 1.5;
+      }
+
+      if(bonusProgress >= 3){
+        expFantasyPts += 3.0;
+      }
+
+      player.expFv = Number(expFantasyPts.toFixed(2));
+      player.ratio = Number(((player.expFv/player.price) * 1000).toFixed(2));
+
+      this.insertIntoCatMap(player);  
+  }
+
+  private insertIntoCatMap(player: Player){
+      if(player.position == 'PG') this.dispPG.set(player.name, player);
+      if(player.position == 'SG') this.dispSG.set(player.name, player);
+      if(player.position == 'SF') this.dispSF.set(player.name, player);
+      if(player.position == 'PF') this.dispPF.set(player.name, player);
+      if(player.position == 'C') this.dispC.set(player.name, player);
+      if(player.position == 'G') this.dispG.set(player.name, player);
+      if(player.position == 'F') this.dispF.set(player.name, player);
+      if(player.position == 'UTIL') this.dispUTIL.set(player.name, player);
+  }
+
+  private getOppAverages(): Team {
+    let averages: Team = new Team();
+
+    this.teams.forEach(team => {
+      averages.threePct += Number(team.threePct); 
+      averages.twoPct += Number(team.twoPct);
+      averages.totRbds += Number(team.totRbds); 
+      averages.steals += Number(team.steals);
+      averages.turnovers += Number(team.turnovers);
+      averages.assists += Number(team.assists);
+      averages.blocks += Number(team.blocks);
     })
+
+    averages.threePct = Number(averages.threePct/30);
+    averages.twoPct = Number(averages.twoPct/30);
+    averages.totRbds = Number(averages.totRbds/30);
+    averages.steals = Number(averages.steals/30);
+    averages.turnovers = Number(averages.turnovers/30);
+    averages.assists = Number(averages.assists/30);
+    averages.blocks = Number(averages.blocks/30);
+
+    return averages;
   } 
 
-  // ************************
-  // Get Team Data
-  // ************************
-
-  private getTeamData(): void {
-    this.homeService.getTeamData().subscribe(team_data => {
-          team_data.forEach(team => {
-            this.Teams.set(team.team, team);
-          });
-
-          this.getDkData();
-      });
-  }
-
-  // ************************
-  // Get DK Data
-  // ************************
-
-  private getDkData(): void {
-    this.homeService.getDkData().subscribe(data => {
-
-      let DKArr: string[] = data.split(',');
-      let i: number = 0;
-
-      while(i <= DKArr.length - 1){
-        let dk_data: DkData = new DkData();
-
-        dk_data.Position = DKArr[i];
-        dk_data.Name_id = DKArr[i + 1];
-        dk_data.Name = DKArr[i + 2];
-        dk_data.Id = Number(DKArr[i + 3]);
-        dk_data.Roster_position = DKArr[i + 4];
-        dk_data.Salary = Number(DKArr[i + 5]);
-
-        // Get Matchups
-
-        if(DKArr[i + 6] !== undefined){
-          let team1:string = this.TeamConversionService.convertTeamName(DKArr[i + 6].split('@')[0]);
-          let team2:string = this.TeamConversionService.convertTeamName(DKArr[i + 6].split('@')[1].split(' ')[0]);
-
-          if(!this.MatchUps.has(team1) && !this.MatchUps.has(team2)){
-            this.MatchUps.set(team1, team2);
-            this.MatchUps.set(team2, team1);
-          }
-        }
-
-        dk_data.Game_info = DKArr[i + 6];
-        dk_data.Team = this.TeamConversionService.convertTeamName(DKArr[i + 7]);
-        dk_data.Avg_fantasy_ppg = Number(DKArr[i + 8]);
-
-        if(dk_data.Name !== undefined){
-          this.DK.set(dk_data.Name, dk_data);
-        }
-
-        i += 8;
-      }
-
-      this.calcFantasyVal();
-    });
-  }
-
-  // ************************************************
-  // Calculate Player Expected Fantasy Value
-  // ************************************************
-
-  private calcFantasyVal(): void {
-    let Opp_Averages: TeamOppStats = new TeamOppStats();
-    this.setOppAverages(Opp_Averages);
-
-    this.Players.forEach(player => {
-      let bonusProgress: number = 0;
-
-      let opponent: TeamOppStats = this.Teams.get(this.MatchUps.get(player.team));
-
-      if(opponent !== undefined){
-
-        // Calculate 3pt Value
-        player.three_pts_exp  = Number((player.three_pts_att * (player.three_pts_pct + ((opponent.three_pt_pct - Opp_Averages.three_pt_pct) / 100))).toFixed(2));
-        // Calculate 2pt Value
-        player.two_pts_exp = Number((player.two_pts_att * (player.two_pts_pct + ((opponent.two_pt_pct - Opp_Averages.two_pt_pct) / 100))).toFixed(2));
-      
-
-        if((player.three_pts_exp + player.two_pts_exp) > 10.0){
-          bonusProgress += 1;
-        }
-
-        // Calculate Assist Value
-        let assistPct: number = player.assists/this.Team_Totals.get(player.team).assists;
-        player.assists_exp = Number((player.assists + assistPct * (opponent.assists - Opp_Averages.assists)).toFixed(2));
-
-        if(player.assists_exp >= 10.0){
-          bonusProgress += 1;
-        }
-
-        // Calculate Rebound Value
-        let reboundPct: number = player.tot_rbds/Number(this.Team_Totals.get(player.team).tot_rebounds);
-        player.rbs_exp = Number((player.tot_rbds + reboundPct * (opponent.tot_rebounds - Opp_Averages.tot_rebounds)).toFixed(2));
-
-        if(player.rbs_exp >= 10.0){
-          bonusProgress += 1;
-        }
-
-        // Calculate Steal Value
-        let stealPct: number = player.steals/Number(this.Team_Totals.get(player.team).steals);
-        player.steals_exp = Number((player.steals + stealPct * (opponent.steals - Opp_Averages.steals)).toFixed(2));
-
-
-        if(player.steals_exp  >= 10.0){
-          bonusProgress += 1;
-        }
-
-        // Calculate Block Value
-        let blockPct: number = player.blocks/Number(this.Team_Totals.get(player.team).blocks);
-        player.blocks_exp = Number((player.blocks + blockPct * (opponent.blocks - Opp_Averages.blocks)).toFixed(2));
-
-
-        if(player.blocks_exp  >= 10.0){
-          bonusProgress += 1;
-        }
-
-        // Calculate Turnover Value
-        let turnoverPct: number = player.turnovers/Number(this.Team_Totals.get(player.team).turnovers);
-        player.turnovers_exp = Number((player.turnovers + turnoverPct * (opponent.turnovers - Opp_Averages.turnovers)).toFixed(2));
-
-        let expFantasyPts: number = (player.two_pts_exp * 2) + player.three_pts_exp * 3.5 +  player.assists_exp  * 1.5 + 
-                                    player.blocks_exp * 2.0 + player.rbs_exp * 1.25 +  player.steals_exp * 2.0 -  player.turnovers_exp  * 0.5;
-
-        if(bonusProgress >= 2){
-          expFantasyPts += 1.5;
-        }
-
-        if(bonusProgress >= 3){
-          expFantasyPts += 3.0;
-        }
-
-        player.exp_fv = Number(expFantasyPts.toFixed(2));
-
-        if(this.DK.has(player.player)){
-          player.price = this.DK.get(player.player).Salary;
-          player.val_ratio = Number((player.exp_fv/player.price * 1000).toFixed(2));
-        }
-      }
-    })
-
-    this.sortPlayers();
-  }
-
-   // ************************
-  // Set Opponent Averages
-  // ************************
-
-  private setOppAverages(Opp_Averages: TeamOppStats): void{
-    this.Teams.forEach(team => {
-      Opp_Averages.three_pt_pct += Number(team.three_pt_pct);
-      Opp_Averages.two_pt_pct += Number(team.two_pt_pct);
-      Opp_Averages.tot_rebounds += Number(team.tot_rebounds);
-      Opp_Averages.steals += Number(team.steals);
-      Opp_Averages.turnovers += Number(team.turnovers);
-      Opp_Averages.assists += Number(team.assists);
-      Opp_Averages.blocks += Number(team.blocks);
-    })
-
-    Opp_Averages.three_pt_pct = Number(Opp_Averages.three_pt_pct)/30;
-    Opp_Averages.two_pt_pct = Number(Opp_Averages.two_pt_pct)/30;
-    Opp_Averages.tot_rebounds = Number(Opp_Averages.tot_rebounds)/30;
-    Opp_Averages.steals = Number(Opp_Averages.steals)/30;
-    Opp_Averages.turnovers = Number(Opp_Averages.turnovers)/30;
-    Opp_Averages.assists = Number(Opp_Averages.assists)/30;
-    Opp_Averages.blocks = Number(Opp_Averages.blocks)/30;
-  } 
-
-  // ******************************
-  // Sort Players Into Categories
-  // ******************************
-
-  public sortPlayers(): void {
-    this.Players.forEach(player => {   
-        let DK_Player: DkData = this.DK.get(player.player);
-        if(player.exp_fv > 0){
-        if(DK_Player !== undefined){
-          if(DK_Player.Salary >= 3200){
-            let positions: string[] = DK_Player.Roster_position.split('/')
-
-            positions.forEach(position => {
-              this.insertIntoCategMap(position, player);
-            })
-          }
-        }
-      }
-    })
-
-    this.refreshDataSource();
-    this.refreshLineup();
-  }
-
-  // Create Copy of Player with updated category position and status
-
-  private createNewPlayer(player: PlayerData, position: string): PlayerData {
-    let ret_player: PlayerData = JSON.parse(JSON.stringify(player));
-    ret_player.position = position;
-    ret_player.active = 'Y';
-    return ret_player;
-  }
-
-  // *****************************************************
-  // All Players get sorted into the appropriate category
-  // *****************************************************
-  
-  public insertIntoCategMap(category: string, player: PlayerData){
-    if(category === 'PG'){
-        this.dispPG.set(player.player, this.createNewPlayer(player, category));
-        this.dispG.set(player.player, this.createNewPlayer(player, 'G'));
-      } else if(category === 'SG'){
-        this.dispSG.set(player.player, this.createNewPlayer(player, category));
-        this.dispG.set(player.player, this.createNewPlayer(player, 'G'));
-    } else if(category === 'SF'){
-        this.dispSF.set(player.player, this.createNewPlayer(player, category));
-        this.dispF.set(player.player, this.createNewPlayer(player, 'F'));
-    } else if(category === 'PF'){
-        this.dispPF.set(player.player, this.createNewPlayer(player, category));
-        this.dispF.set(player.player, this.createNewPlayer(player, 'F'));
-    } else if(category === 'C'){
-        this.dispC.set(player.player, this.createNewPlayer(player, category));
-    };
-
-    this.dispUTIL.set(player.player, this.createNewPlayer(player, 'UTIL'));
-  } 
-  
   public clearLineup() {
     let positions = ['PG', 'SG', 'SF', 'PF', 'C', 'G', 'F', 'UTIL'];
 
     positions.forEach(position => {
-      let player: PlayerData = new PlayerData();
+      let player: Player = new Player();
       player.position = position;
 
-      if(this.Lineup.has(position) && this.Lineup.get(position).player != '')
-        this.togglePlayerStatus(this.Lineup.get(position), 'Y');
+      if(this.lineup.has(position) && this.lineup.get(position).name != '')
+        this.togglePlayerStatus(this.lineup.get(position), 'Y');
 
-      this.Lineup.set(position, player);
+      this.lineup.set(position, player);
     })
 
     this.refreshDataSource();
     this.updateTotals();
   }
 
-  public removePlayer(player: PlayerData){
-    let def_player: PlayerData = new PlayerData()
+  public removePlayer(player: Player){
+    // create default player for table
+    let defPlayer: Player = new Player()
+
+    // toggle player status show they show up in selectable players
     this.togglePlayerStatus(player, 'Y');
-    this.Lineup.set(player.position, def_player);
+
+    // set lineup position to default (empty)
+    this.lineup.set(player.position, defPlayer);
+
+    // refresh
     this.refreshDataSource();
+
+    // update total
     this.updateTotals();
   }
 
 
   // **********************
   // Select Lineups
-  // *********************
+  // **********************
+
 
   public selectLineup(){
      
-   this.trimCategories();
-
-    for(const [key, _sg] of this.SG.entries()){
-      for(const [key, _pg] of this.PG.entries()){
-        for(const [key, _sf] of this.SF.entries()){
-          for(const [key, _pf] of this.PF.entries()){
-            for(const [key, _c] of this.C.entries()){
-              for(const [key, _g] of this.G.entries()){
-                for(const [key, _f] of this.F.entries()){
-                  for(const [key, _util] of this.UTIL.entries()){
-                    let lineup: PlayerData[] = [_pg, _sg, _sf, _pf, _c, _g, _f, _util];
-                    let positions: string[] = ['PG', 'SG', 'SF', 'PF', 'C', 'G', 'F', 'UTIL'];
-  
-                    if(this.getSalSum(lineup) <= 50000){
-                      if(this.lineupIsUnique(lineup)){
-                        if(this.getExpFantValSum(lineup) > this.getLineupSum()){  
-                          for(let i = 0; i < positions.length; i++)
-                            this.Lineup.set(positions[i], lineup[i]);
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    this.refreshLineup();
-    this.updateTotals();
-  } // Select Lineups
+    this.trimCategories();
+ 
+     for(const [key, _sg] of this.SG.entries()){
+       for(const [key, _pg] of this.PG.entries()){
+         for(const [key, _sf] of this.SF.entries()){
+           for(const [key, _pf] of this.PF.entries()){
+             for(const [key, _c] of this.C.entries()){
+               for(const [key, _g] of this.G.entries()){
+                 for(const [key, _f] of this.F.entries()){
+                   for(const [key, _util] of this.UTIL.entries()){
+                     let lineup: Player[] = [_pg, _sg, _sf, _pf, _c, _g, _f, _util];
+                     let positions: string[] = ['PG', 'SG', 'SF', 'PF', 'C', 'G', 'F', 'UTIL'];
+   
+                     if(this.getSalSum(lineup) <= 50000){
+                       if(this.lineupIsUnique(lineup)){
+                         if(this.getExpFantValSum(lineup) > this.getLineupSum()){  
+                           for(let i = 0; i < positions.length; i++)
+                             this.lineup.set(positions[i], lineup[i]);
+                         }
+                       }
+                     }
+                   }
+                 }
+               }
+             }
+           }
+         }
+       }
+     }
+ 
+     this.refreshLineup();
+     this.updateTotals();
+   } // Select Lineups
 
   /*
   *  Function trimpCategories()
@@ -469,188 +322,190 @@ export class PlayersComponent implements OnInit {
   * with remaining players.
   */
 
- public trimCategories(): void {
+public trimCategories(): void {
   let players_left = 0; 
   let salary_filter = 0;
   let optimValue = 7;
 
-  Array.from(this.Lineup.values()).filter(player => {
-    if(player.player === ''){
+  Array.from(this.lineup.values()).filter(player => {
+    if(player.name === ''){
       players_left++;
     }
   })
 
-  salary_filter = ((50000 - this.getSalSum(Array.from(this.Lineup.values())))/players_left) + 2000 - (2000 * ((8-players_left)/8));
+  salary_filter = ((50000 - this.getSalSum(Array.from(this.lineup.values())))/players_left) + 2000 - (2000 * ((8-players_left)/8));
   optimValue = 7 + (8 - players_left);
   salary_filter = 7500;
 
-  if(!this.Lineup.has('PG') || (this.Lineup.has('PG') && this.Lineup.get('PG').player === '')){ 
-    let _pgs: PlayerData[] = Array.from(this.dispPG.values()).filter((player) => player.active === 'Y' && player.price < salary_filter 
-                                                                    && player.val_ratio > 4.0).sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+  if(!this.lineup.has('PG') || (this.lineup.has('PG') && this.lineup.get('PG').name === '')){ 
+    let _pgs: Player[] = Array.from(this.dispPG.values()).filter((player) => player.active === 'Y' && player.price < salary_filter 
+                                                                    && player.ratio > 4.0).sort((a,b) => (a.expFv < b.expFv) ? 1 : -1);
 
 
-    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+    let playerMap: Map<string, Player> = new Map<string, Player>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(_pgs[i].player, _pgs[i]);
+      playerMap.set(_pgs[i].name, _pgs[i]);
     }
 
     this.PG = playerMap;
   } else {
-    this.PG = new Map<string, PlayerData>([[this.Lineup.get('PG').player, this.Lineup.get('PG')]])
+    this.PG = new Map<string, Player>([[this.lineup.get('PG').name, this.lineup.get('PG')]])
   }
 
-  if(!this.Lineup.has('SG') || (this.Lineup.has('SG') && this.Lineup.get('SG').player === '')){
-    let _sgs: PlayerData[] = Array.from(this.dispSG.values()).filter((player) => player.active === 'Y' 
+  if(!this.lineup.has('SG') || (this.lineup.has('SG') && this.lineup.get('SG').name === '')){
+    let _sgs: Player[] = Array.from(this.dispSG.values()).filter((player) => player.active === 'Y' 
                                                                       && player.price < salary_filter 
-                                                                      && player.val_ratio > 4.0)
-                                                                      .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+                                                                      && player.ratio > 4.0)
+                                                                      .sort((a,b) => (a.expFv < b.expFv) ? 1 : -1);
 
-    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+    let playerMap: Map<string, Player> = new Map<string, Player>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(_sgs[i].player, _sgs[i]);
+      playerMap.set(_sgs[i].name, _sgs[i]);
     }
 
     this.SG = playerMap;
   } else {
-    this.SG = new Map<string, PlayerData>([[this.Lineup.get('SG').player, this.Lineup.get('SG')]])
+    this.SG = new Map<string, Player>([[this.lineup.get('SG').name, this.lineup.get('SG')]])
   }
 
-  if(!this.Lineup.has('SF') || (this.Lineup.has('SF') && this.Lineup.get('SF').player === '')){
-    let _sfs: PlayerData[] = Array.from(this.dispSF.values()).filter((player) => player.active === 'Y' 
+  if(!this.lineup.has('SF') || (this.lineup.has('SF') && this.lineup.get('SF').name === '')){
+    let _sfs: Player[] = Array.from(this.dispSF.values()).filter((player) => player.active === 'Y' 
                                                                       && player.price < salary_filter 
-                                                                      && player.val_ratio > 4.0)
-                                                                      .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+                                                                      && player.ratio > 4.0)
+                                                                      .sort((a,b) => (a.expFv < b.expFv) ? 1 : -1);
 
-    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+    let playerMap: Map<string, Player> = new Map<string, Player>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(_sfs[i].player, _sfs[i]);
+      playerMap.set(_sfs[i].name, _sfs[i]);
     }
 
     this.SF = playerMap;
   } else {
-    this.SF = new Map<string, PlayerData>([[this.Lineup.get('SF').player, this.Lineup.get('SF')]])
+    this.SF = new Map<string, Player>([[this.lineup.get('SF').name, this.lineup.get('SF')]])
   }
 
-  if(!this.Lineup.has('PF') || (this.Lineup.has('PF') && this.Lineup.get('PF').player === '')){
-    let _pfs: PlayerData[] = Array.from(this.dispPF.values()).filter((player) => player.active === 'Y' 
+  if(!this.lineup.has('PF') || (this.lineup.has('PF') && this.lineup.get('PF').name === '')){
+    let _pfs: Player[] = Array.from(this.dispPF.values()).filter((player) => player.active === 'Y' 
                                                                     && player.price < salary_filter 
-                                                                    && player.val_ratio > 4.0)
-                                                                    .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
-    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+                                                                    && player.ratio > 4.0)
+                                                                    .sort((a,b) => (a.expFv < b.expFv) ? 1 : -1);
+    let playerMap: Map<string, Player> = new Map<string, Player>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(_pfs[i].player, _pfs[i]);
+      playerMap.set(_pfs[i].name, _pfs[i]);
     }
 
     this.PF = playerMap;
   } else {
-    this.PF = new Map<string, PlayerData>([[this.Lineup.get('PF').player, this.Lineup.get('PF')]])
+    this.PF = new Map<string, Player>([[this.lineup.get('PF').name, this.lineup.get('PF')]])
   }
 
-  if(!this.Lineup.has('C') || (this.Lineup.has('C') && this.Lineup.get('C').player === '')){
-    let _cs: PlayerData[] = Array.from(this.dispC.values()).filter((player) => player.active === 'Y' 
+  if(!this.lineup.has('C') || (this.lineup.has('C') && this.lineup.get('C').name === '')){
+    let _cs: Player[] = Array.from(this.dispC.values()).filter((player) => player.active === 'Y' 
                                                                   && player.price <= salary_filter 
-                                                                  && player.val_ratio > 4.0)
-                                                                  .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+                                                                  && player.ratio > 4.0)
+                                                                  .sort((a,b) => (a.expFv < b.expFv) ? 1 : -1);
 
-    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+    let playerMap: Map<string, Player> = new Map<string, Player>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(_cs[i].player, _cs[i]);
+      playerMap.set(_cs[i].name, _cs[i]);
     }
 
     this.C = playerMap;
   } else {
-    this.C = new Map<string, PlayerData>([[this.Lineup.get('C').player, this.Lineup.get('C')]])
+    this.C = new Map<string, Player>([[this.lineup.get('C').name, this.lineup.get('C')]])
   }
 
-  if(!this.Lineup.has('G') || (this.Lineup.has('G') && this.Lineup.get('G').player === '')){
-    let _gs: PlayerData[] = Array.from(this.dispG.values()).filter((player) => player.active === 'Y' 
+  if(!this.lineup.has('G') || (this.lineup.has('G') && this.lineup.get('G').name === '')){
+    let _gs: Player[] = Array.from(this.dispG.values()).filter((player) => player.active === 'Y' 
                                                                     && player.price <= salary_filter 
-                                                                    && player.val_ratio > 4.0)
-                                                                    .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+                                                                    && player.ratio > 4.0)
+                                                                    .sort((a,b) => (a.expFv < b.expFv) ? 1 : -1);
 
-    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+    let playerMap: Map<string, Player> = new Map<string, Player>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(_gs[i].player, _gs[i]);
+      playerMap.set(_gs[i].name, _gs[i]);
     }
 
     this.G = playerMap;
   } else {
-    this.G = new Map<string, PlayerData>([[this.Lineup.get('G').player, this.Lineup.get('G')]])
+    this.G = new Map<string, Player>([[this.lineup.get('G').name, this.lineup.get('G')]])
   }
 
-  if(!this.Lineup.has('F') || (this.Lineup.has('F') && this.Lineup.get('F').player === '')){
-    let _fs: PlayerData[] = Array.from(this.dispF.values()).filter((player) => player.active === 'Y' 
+  if(!this.lineup.has('F') || (this.lineup.has('F') && this.lineup.get('F').name === '')){
+    let _fs: Player[] = Array.from(this.dispF.values()).filter((player) => player.active === 'Y' 
                                                                     && player.price <= salary_filter
-                                                                    && player.val_ratio > 4.0)
-                                                                    .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+                                                                    && player.ratio > 4.0)
+                                                                    .sort((a,b) => (a.expFv < b.expFv) ? 1 : -1);
 
-    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+    let playerMap: Map<string, Player> = new Map<string, Player>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(_fs[i].player, _fs[i]);
+      playerMap.set(_fs[i].name, _fs[i]);
     }
 
     this.F = playerMap;
   } else {
-    this.F = new Map<string, PlayerData>([[this.Lineup.get('F').player, this.Lineup.get('F')]])
+    this.F = new Map<string, Player>([[this.lineup.get('F').name, this.lineup.get('F')]])
   }
 
-  if(!this.Lineup.has('UTIL') || (this.Lineup.has('UTIL') && this.Lineup.get('UTIL').player === '')){
-    let _utils: PlayerData[] = Array.from(this.dispUTIL.values()).filter((player) => player.active === 'Y' 
+  if(!this.lineup.has('UTIL') || (this.lineup.has('UTIL') && this.lineup.get('UTIL').name === '')){
+    let _utils: Player[] = Array.from(this.dispUTIL.values()).filter((player) => player.active === 'Y' 
                                                                     && player.price < salary_filter 
-                                                                    && player.val_ratio > 4.0)
-                                                                    .sort((a,b) => (a.exp_fv < b.exp_fv) ? 1 : -1);
+                                                                    && player.ratio > 4.0)
+                                                                    .sort((a,b) => (a.expFv < b.expFv) ? 1 : -1);
 
-    let playerMap: Map<string, PlayerData> = new Map<string, PlayerData>();
+    let playerMap: Map<string, Player> = new Map<string, Player>();
 
     for(let i = 0; i < optimValue; i++){
-      playerMap.set(_utils[i].player, _utils[i]);
+      playerMap.set(_utils[i].name, _utils[i]);
     }
 
     this.UTIL = playerMap;
   } else {
-    this.UTIL = new Map<string, PlayerData>([[this.Lineup.get('UTIL').player, this.Lineup.get('UTIL')]])
+    this.UTIL = new Map<string, Player>([[this.lineup.get('UTIL').name, this.lineup.get('UTIL')]])
   }
 
 }
 
+
 public refreshDataSource(): void {
   this.emitLoadingEventToChild(true);
   this.pgDataSource = Array.from(this.dispPG.values()).filter(player => player.active === 'Y');
-  this.sgDataSource  = Array.from(this.dispSG.values()).filter(player => player.active === 'Y');
-  this.sfDataSource  = Array.from(this.dispSF.values()).filter(player => player.active === 'Y');
-  this.pfDataSource  = Array.from(this.dispPF.values()).filter(player => player.active === 'Y');
-  this.cDataSource  = Array.from(this.dispC.values()).filter(player => player.active === 'Y');
-  this.gDataSource  = Array.from(this.dispG.values()).filter(player => player.active === 'Y');
-  this.fDataSource = Array.from(this.dispF.values()).filter(player => player.active === 'Y');
-  this.utilDataSource  = Array.from(this.dispUTIL.values()).filter(player => player.active === 'Y');
+  this.sgDataSource  = Array.from(this.dispSG.values()).filter(player => player.active  ===  'Y');
+  this.sfDataSource  = Array.from(this.dispSF.values()).filter(player => player.active  ===  'Y');
+  this.pfDataSource  = Array.from(this.dispPF.values()).filter(player => player.active  ===  'Y');
+  this.cDataSource  = Array.from(this.dispC.values()).filter(player => player.active  ===  'Y');
+  this.gDataSource  = Array.from(this.dispG.values()).filter(player => player.active  ===  'Y');
+  this.fDataSource = Array.from(this.dispF.values()).filter(player => player.active  ===  'Y');
+  this.utilDataSource  = Array.from(this.dispUTIL.values()).filter(player => player.active  ===  'Y');
   this.refreshLineup();
   this.emitLoadingEventToChild(false);
 }
 
 public refreshLineup(): void {
-  this.selectionTableDataSource =  Array.from(this.Lineup.values());
+  this.selectionTableDataSource =  Array.from(this.lineup.values());
 }
 
-public lineupAdd(player_data: any): void{
-  let player: PlayerData = player_data.player;
 
-  if(this.Lineup.size < 9){
+public lineupAdd(playerData: any): void{
+  let player: Player = playerData.player;
+
+  if(this.lineup.size < 9){
     // If position is filled, re-add player to display list
-    if(this.Lineup.has(player.position)){
-      if(this.Lineup.get(player.position).player !== ''){
-        this.togglePlayerStatus(this.Lineup.get(player.position), 'Y');
+    if(this.lineup.has(player.position)){
+      if(this.lineup.get(player.position).name !== ''){
+        this.togglePlayerStatus(this.lineup.get(player.position), 'Y');
       }
     }
 
     // set new player at position & update table totals
-    this.Lineup.set(player.position, player);
+    this.lineup.set(player.position, player);
     this.updateTotals();
 
     // remove player from tables
@@ -669,52 +524,38 @@ public lineupAdd(player_data: any): void{
   }
 }
 
-  public togglePlayerStatus(player: PlayerData, active: string): void {
-    if(this.dispSG.has(player.player))
-      this.dispSG.get(player.player).active = active;
-
-    if(this.dispPG.has(player.player))
-      this.dispPG.get(player.player).active = active;
-
-    if(this.dispSF.has(player.player))
-      this.dispSF.get(player.player).active = active;
-
-    if(this.dispPF.has(player.player))
-      this.dispPF.get(player.player).active = active;
-
-    if(this.dispC.has(player.player))
-      this.dispC.get(player.player).active = active;
-
-    if(this.dispG.has(player.player))
-      this.dispG.get(player.player).active = active;
-
-    if(this.dispF.has(player.player))
-      this.dispF.get(player.player).active = active;
-
-    this.dispUTIL.get(player.player).active = active;
+  public togglePlayerStatus(player: Player, active: string): void {
+    if(this.dispSG.has(player.name))  this.dispSG.get(player.name).active = active;
+    if(this.dispPG.has(player.name))  this.dispPG.get(player.name).active = active;
+    if(this.dispSF.has(player.name))  this.dispSF.get(player.name).active = active;
+    if(this.dispPF.has(player.name))  this.dispPF.get(player.name).active = active;
+    if(this.dispC.has(player.name))   this.dispC.get(player.name).active = active;
+    if(this.dispG.has(player.name))   this.dispG.get(player.name).active = active;
+    if(this.dispF.has(player.name))   this.dispF.get(player.name).active = active;
+    this.dispUTIL.get(player.name).active = active;
   }
 
   private getLineupSum(): number {
     let sum: number = 0;
 
-    for(const [key, player] of this.Lineup.entries()){
-      sum += player.exp_fv;
+    for(const [key, player] of this.lineup.entries()){
+      sum += player.expFv;
     }
 
     return sum;
   }
 
-  private getExpFantValSum(players: PlayerData[]): number{
+  private getExpFantValSum(players: Player[]): number{
     let total: number = 0;
 
     players.forEach(player => {
-      total += player.exp_fv;
+      total += player.expFv;
     })
 
     return total;
   }
 
-  private getSalSum(players: PlayerData[]): number{
+  private getSalSum(players: Player[]): number{
     let total: number = 0;
 
     players.forEach(player => {
@@ -724,10 +565,10 @@ public lineupAdd(player_data: any): void{
     return total;
   }
 
-  private lineupIsUnique(players: PlayerData[]): boolean {
+  private lineupIsUnique(players: Player[]): boolean {
     for(let i: number = 0; i < players.length; i++){
       for(let j: number = 0; j < players.length; j++){
-        if((players[i].player === players[j].player) && (j !== i)){
+        if((players[i].name === players[j].name) && (j !== i)){
           return false;
         }
       }
@@ -737,7 +578,7 @@ public lineupAdd(player_data: any): void{
   }
 
   private updateTotals(){
-    this.Total_Cost = this.getSalSum(Array.from(this.Lineup.values()));
-    this.Total_Fntsy_Pts = Number(this.getLineupSum().toFixed(2));
+    this.totalCost = this.getSalSum(Array.from(this.lineup.values()));
+    this.totalFntsyPts = Number(this.getLineupSum().toFixed(2));
   }
 }

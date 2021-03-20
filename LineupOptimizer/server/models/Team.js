@@ -4,6 +4,9 @@ const team = new mongoose.Schema({
     name : {
         type: String
     },
+    gamesPlayed: {
+        type: Number
+    },
     points : {
         type: Number
     },

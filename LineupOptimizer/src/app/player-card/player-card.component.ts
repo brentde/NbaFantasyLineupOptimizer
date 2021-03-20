@@ -1,10 +1,11 @@
+import { Player } from './../shared/models/Player';
 import { Component, OnInit, Inject } from '@angular/core';
-import { PlayerData } from '../shared/models/PlayerData';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DomSanitizer } from '@angular/platform-browser';
 
+
 export interface PlayerDialog {
-  player: PlayerData;
+  player: Player;
 }
 
 @Component({
@@ -14,7 +15,7 @@ export interface PlayerDialog {
 })
 
 export class PlayerCardComponent implements OnInit {
-  public playerDataSource: PlayerData [] = []; 
+  public playerDataSource: Player [] = []; 
   displayedColumns: string[] = ["Team", "3P", "2P", "Rebounds", "Assists", "Steals", "Blocks", "Turnovers"]
 
   constructor( @Inject(MAT_DIALOG_DATA) public data: PlayerDialog,
@@ -33,7 +34,8 @@ export class PlayerCardComponent implements OnInit {
   }
 
   private setPlayerPhoto(): void {
-    // this.playerDataSource[0].photo = this.sanitizer.bypassSecurityTrustUrl(this.playerDataSource[0].photoUrl);
+    console.log(this.playerDataSource[0].photoUrl);
+    this.playerDataSource[0].photo = this.sanitizer.bypassSecurityTrustUrl(this.playerDataSource[0].photoUrl);
   }
 
 }
