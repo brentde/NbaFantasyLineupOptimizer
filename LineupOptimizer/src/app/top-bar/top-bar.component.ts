@@ -1,4 +1,7 @@
+import { Matchup } from './../shared/models/Matchup';
+import { MongodbService } from './../shared/services/mongodb.service';
 import { Component, OnInit } from '@angular/core';
+
 
 @Component({
   selector: 'app-top-bar',
@@ -7,9 +10,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TopBarComponent implements OnInit {
 
-  constructor() { }
+  public matchUps: Matchup[] = [];
+
+  constructor(private mongo: MongodbService) { }
 
   ngOnInit() {
+    this.getMatchups();
   }
 
+  private getMatchups(): void {
+     this.mongo.getMatchups().subscribe(matchups => {
+       this.matchUps = matchups;
+     })
+  }
 }

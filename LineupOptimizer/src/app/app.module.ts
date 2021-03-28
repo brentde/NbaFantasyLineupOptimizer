@@ -20,6 +20,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { StatColorDirective } from './player-card/shared/stat-color.directive'
 import { MatDialogModule } from '@angular/material/dialog';
 import { PlayerTableComponent } from './shared/components/player-table/player-table.component';
+import { MatchupCardComponent } from './matchup-card/matchup-card.component';
+import { MatchupDialogComponent } from './matchup-card/matchup-dialog/matchup-dialog.component';
 
 
 @NgModule({
@@ -30,7 +32,9 @@ import { PlayerTableComponent } from './shared/components/player-table/player-ta
     PlayerCardComponent,
     TeamCardComponent,
     StatColorDirective,
-    PlayerTableComponent
+    PlayerTableComponent,
+    MatchupCardComponent,
+    MatchupDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -49,6 +53,8 @@ import { PlayerTableComponent } from './shared/components/player-table/player-ta
   ],
   providers: [],
   bootstrap: [AppComponent],
-  entryComponents: [ PlayerCardComponent ]
+  entryComponents: [ PlayerCardComponent, 
+                     MatchupDialogComponent 
+  ]
 })
 export class AppModule { }

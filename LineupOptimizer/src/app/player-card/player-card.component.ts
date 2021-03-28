@@ -34,7 +34,6 @@ export class PlayerCardComponent implements OnInit {
   }
 
   private setPlayerPhoto(): void {
-    console.log(this.playerDataSource[0].photoUrl);
     this.playerDataSource[0].photo = this.sanitizer.bypassSecurityTrustUrl(this.playerDataSource[0].photoUrl);
   }
 

@@ -1,4 +1,6 @@
 <mat-toolbar class="app-bg-color">
-    <p style="float: left; color: white;">Home</p>
+    <div class="scrolling-wrapper-flexbox mr-1" *ngFor="let matchup of matchUps">
+        <app-matchup-card class="card" [matchup]="matchup"></app-matchup-card>
+    </div>
 </mat-toolbar>
 

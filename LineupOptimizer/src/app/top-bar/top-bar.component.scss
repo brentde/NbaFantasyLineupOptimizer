@@ -1,0 +1,13 @@
+.scrolling-wrapper-flexbox {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  
+    .card {
+      flex: 0 0 auto;
+    }
+  }
+
+  .mr-1{
+      margin-right: 1px;
+  }
