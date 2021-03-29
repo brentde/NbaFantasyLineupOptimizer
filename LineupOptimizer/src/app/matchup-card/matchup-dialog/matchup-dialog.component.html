@@ -1,4 +1,4 @@
-<div id="img-container" class="container" class="w-100 h-100">
+<div id="img-container" class="container" class="w-100 h-100" >
     <div class="sub-container">
         <div>
             <img src="../../../assets/shared/team_logos/{{matchup.away.toLowerCase()}}.png" alt="{{matchup.away}} Logo">
@@ -10,12 +10,66 @@
     </div>
 
     <div class="sub-container">
+        
+        <!-- Away Team Table -->
+        
         <div class="h-100 w-100">
-            How are
+            <mat-spinner *ngIf="Loading" style="margin: 0 auto;"></mat-spinner>
+
+            <div *ngIf="!Loading" class="table-styles w-100"> 
+                <table mat-table [dataSource]="awayTeamDataSource" class="mat-elevation-z8 w-95" >
+            
+                    <ng-container matColumnDef="Name">
+                    <th mat-header-cell *matHeaderCellDef>Player</th>
+                    <td mat-cell *matCellDef="let player"> {{player.name}} </td>
+                    </ng-container>
+                
+                    <ng-container matColumnDef="Position">
+                    <th mat-header-cell *matHeaderCellDef>Team</th>
+                    <td mat-cell *matCellDef="let player"> {{player.position}} </td>
+                    </ng-container>
+        
+                    <ng-container matColumnDef="Salary">
+                        <th mat-header-cell *matHeaderCellDef>Salary</th>
+                        <td mat-cell *matCellDef="let player"> {{player.price}} </td>
+                    </ng-container>        
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true;"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+            </div>
+
+           
         </div>
 
+        <!-- Home Team Table -->
+        
         <div class="h-100 w-100">
-            you?
+            <mat-spinner *ngIf="Loading" style="margin: 0 auto;"></mat-spinner>
+
+            <div *ngIf="!Loading" class="w-100 table-styles"> 
+                <table mat-table [dataSource]="homeTeamDataSource" class="mat-elevation-z8 w-95" >
+            
+                    <ng-container matColumnDef="Name">
+                    <th mat-header-cell *matHeaderCellDef>Player</th>
+                    <td mat-cell *matCellDef="let player"> {{player.name}} </td>
+                    </ng-container>
+                
+                    <ng-container matColumnDef="Position">
+                    <th mat-header-cell *matHeaderCellDef>Team</th>
+                    <td mat-cell *matCellDef="let player"> {{player.position}} </td>
+                    </ng-container>
+        
+                    <ng-container matColumnDef="Salary">
+                        <th mat-header-cell *matHeaderCellDef>Salary</th>
+                        <td mat-cell *matCellDef="let player"> {{player.price}} </td>
+                    </ng-container>        
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true;"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+            </div>
+            
         </div>
     </div>
 </div>

@@ -215,12 +215,20 @@ function getPlayers(){
     })
 }
 
-
 function getPlayer(id){
     const database = dbService.db.db(dbName);
     const collection = database.collection('Player');
     const query = {_id: id};
     return collection.findOne(query);
+}
+
+function getPlayersByTeam(team){
+    return new Promise((resolve, reject) => {
+        const database = dbService.db.db(dbName)
+        const collection = database.collection('Player')
+        const query = {team: team, injured: 'N', active: 'Y'}
+        resolve(collection.find(query).toArray());
+    })
 }
 
 function getAllActiveByPosition(position){
@@ -265,5 +273,6 @@ exports.getTeam = getTeam;
 exports.getMatchups = getMatchups;
 exports.getPlayers = getPlayers;
 exports.getTeams = getTeams;
+exports.getPlayersByTeam = getPlayersByTeam;
   
   

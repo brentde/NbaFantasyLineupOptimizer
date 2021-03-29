@@ -272,11 +272,9 @@ export class PlayersComponent implements OnInit {
     this.updateTotals();
   }
 
-
   // **********************
   // Select Lineups
   // **********************
-
 
   public selectLineup(){
      

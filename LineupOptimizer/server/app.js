@@ -2,7 +2,8 @@ const config = require('./config/config');
 const express = require('express');
 const app = express()
 const dbService = require('./db.service');
-const { refreshPlayerData, refreshTeamData, updateInjuries, updateDkData, getPlayer, getAllActiveByPosition, getTeam, getMatchups, getPlayers, getTeams } = require('./mongoCRUD')
+const { refreshPlayerData, refreshTeamData, updateInjuries, updateDkData, 
+        getMatchups, getPlayers, getTeams, getPlayersByTeam } = require('./mongoCRUD')
 
 
 // MongoDB Connect
@@ -74,6 +75,12 @@ app.get('/get-matchups', (req, res) => {
 app.get('/get-teams', (req, res) => {
   getTeams().then(teams => {
     res.send(teams);
+  })
+})
+
+app.get('/get-players-by-team/:team', (req, res) => {
+  getPlayersByTeam(req.params.team).then(players => {
+    res.send(players);
   })
 })
 

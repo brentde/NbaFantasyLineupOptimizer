@@ -1,7 +1,7 @@
 import { Matchup } from './../models/Matchup';
 import { Team } from './../models/Team';
 import { Player } from './../models/Player';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -22,5 +22,9 @@ export class MongodbService {
 
   public getMatchups(): Observable<Matchup[]> {
     return this.http.get<Matchup[]>('/api/get-matchups');
+  }
+
+  public getPlayersByTeam(team: string): Observable<Player[]> {
+    return this.http.get<Player[]>(`/api/get-players-by-team/${team}`);
   }
 }
