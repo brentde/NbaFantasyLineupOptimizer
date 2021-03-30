@@ -14,27 +14,25 @@ import { Player } from '../../models/Player';
 })
 export class PlayerTableComponent implements OnInit {
 
-  // @Input() dataSource: PlayerData[];
   @Input() dataSource: Player[];
-  @Input() loadingEvent: Observable<any>;
   
   public Loading: boolean = true;
   
   public displayedColumns: string[] = ["Name", "Team", "Exp_Fant_Pts", "Salary", "Value", "Add_Btn"]
 
-  private loadingEventSubscription: Subscription; 
+  private subscriptions: Subscription; 
 
   constructor(private dialog: MatDialog,
               private playerService: PlayerService) { }
 
   ngOnInit() {
-    this.loadingEventSubscription = this.loadingEvent.subscribe(loading => {
+    this.subscriptions =this.playerService.getLoadingMessage().subscribe(loading => {
       this.Loading = loading; 
     })
   }
 
   ngOnDestory(){
-    this.loadingEventSubscription.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   // **********************

@@ -3,12 +3,10 @@ import { MongodbService } from './../shared/services/mongodb.service';
 import { Component, OnInit, OnDestroy, ViewChild, Output, EventEmitter} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTabGroup } from '@angular/material';
-import { Subject, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Player } from '../shared/models/Player';
 import { Matchup } from '../shared/models/Matchup';
 import { Team } from './../shared/models/Team';
-
-
 
 @Component({
   selector: 'app-players',
@@ -25,7 +23,6 @@ import { Team } from './../shared/models/Team';
 export class PlayersComponent implements OnInit, OnDestroy {
 
   @ViewChild(MatTabGroup, {static: false}) tabGroup: MatTabGroup;
-  public loadingSubject: Subject<boolean> = new Subject<boolean>();
   
   selected: boolean = false;
   cur_index: number = 0;
@@ -100,7 +97,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.getAllData();
     this.clearLineup();
-    this.emitLoadingEventToChild(true);
+    this.playerService.updateLoading(true);
     
   }
 
@@ -126,100 +123,13 @@ export class PlayersComponent implements OnInit, OnDestroy {
           // get players and calculate value
         this.mongoService.getPlayers().subscribe(players => {
           players.forEach(player => {
-            this.calcFV(player);
+            this.insertIntoCatMap(player);
           })
 
           this.refreshDataSource();
         })
       })
     })
-  }
-
-  public emitLoadingEventToChild(status: boolean): void {
-    this.loadingSubject.next(status);
-  }
-
-  private calcFV(player: Player): void {
-    let averages: Team = this.getOppAverages();
- 
-    let bonusProgress: number = 0;
-    let oppTeam: Team;
-
-    if(this.matchups.get(player.team)){
-      // Player is part of the home team, so get away team stats
-      oppTeam = this.teams.get(this.matchups.get(player.team).away);
-    } else {
-
-      // Player is from the away team, get home team stats
-      for(const [key, matchup] of this.matchups.entries()){
-        if(matchup.away == player.team){
-          oppTeam = this.teams.get(matchup.home);
-        }
-      }
-    }
-
-      // Calculate 3pt Value
-      player.threesExp  = Number((player.threesAtt * (player.threePct + ((oppTeam.threePct - averages.threePct) / 100))).toFixed(2));
-      // Calculate 2pt Value
-      player.twosExp  = Number((player.twosAtt * (player.twoPct + ((oppTeam.twoPct - averages.twoPct) / 100))).toFixed(2));
-    
-      if((player.threesExp + player.twosExp + player.ftMade) > 10.0){
-        bonusProgress += 1;
-      }
-
-      // Calculate Assist Value
-      let assistPct: number = player.assists/this.teams.get(player.team).assists;
-      player.assistsExp = Number((player.assists + assistPct * (oppTeam.assists - averages.assists)).toFixed(2));
-
-      if(player.assistsExp >= 10.0){
-        bonusProgress += 1;
-      }
-
-      // Calculate Rebound Value
-      let reboundPct: number = player.totRbds/Number(this.teams.get(player.team).totRbds);
-      player.rbdsExp = Number((player.totRbds + reboundPct * (oppTeam.totRbds - averages.totRbds)).toFixed(2));
-
-      if(player.rbdsExp >= 10.0){
-        bonusProgress += 1;
-      }
-
-      // Calculate Steal Value
-      let stealPct: number = player.steals/Number(this.teams.get(player.team).steals);
-      player.stealsExp = Number((player.steals + stealPct * (oppTeam.steals - averages.steals)).toFixed(2));
-
-
-      if(player.stealsExp  >= 10.0){
-        bonusProgress += 1;
-      }
-
-      // Calculate Block Value
-      let blockPct: number = player.blocks/Number(this.teams.get(player.team).blocks);
-      player.blocksExp = Number((player.blocks + blockPct * (oppTeam.blocks - averages.blocks)).toFixed(2));
-
-
-      if(player.blocksExp  >= 10.0){
-        bonusProgress += 1;
-      }
-
-      // Calculate Turnover Value
-      let turnoverPct: number = player.turnovers/Number(this.teams.get(player.team).turnovers);
-      player.turnoversExp = Number((player.turnovers + turnoverPct * (oppTeam.turnovers - averages.turnovers)).toFixed(2));
-
-      let expFantasyPts: number = (player.twosExp * 2) + player.threesExp * 3.5 +  player.assistsExp  * 1.5 + player.ftMade + 
-                                  player.blocksExp * 2.0 + player.rbdsExp * 1.25 +  player.stealsExp * 2.0 -  (player.turnoversExp + player.pf)  * 0.5;
-
-      if(bonusProgress >= 2){
-        expFantasyPts += 1.5;
-      }
-
-      if(bonusProgress >= 3){
-        expFantasyPts += 3.0;
-      }
-
-      player.expFv = Number(expFantasyPts.toFixed(2));
-      player.ratio = Number(((player.expFv/player.price) * 1000).toFixed(2));
-
-      this.insertIntoCatMap(player);  
   }
 
   private insertIntoCatMap(player: Player){
@@ -232,30 +142,6 @@ export class PlayersComponent implements OnInit, OnDestroy {
       if(player.position == 'F') this.dispF.set(player.name, player);
       if(player.position == 'UTIL') this.dispUTIL.set(player.name, player);
   }
-
-  private getOppAverages(): Team {
-    let averages: Team = new Team();
-
-    this.teams.forEach(team => {
-      averages.threePct += Number(team.threePct); 
-      averages.twoPct += Number(team.twoPct);
-      averages.totRbds += Number(team.totRbds); 
-      averages.steals += Number(team.steals);
-      averages.turnovers += Number(team.turnovers);
-      averages.assists += Number(team.assists);
-      averages.blocks += Number(team.blocks);
-    })
-
-    averages.threePct = Number(averages.threePct/30);
-    averages.twoPct = Number(averages.twoPct/30);
-    averages.totRbds = Number(averages.totRbds/30);
-    averages.steals = Number(averages.steals/30);
-    averages.turnovers = Number(averages.turnovers/30);
-    averages.assists = Number(averages.assists/30);
-    averages.blocks = Number(averages.blocks/30);
-
-    return averages;
-  } 
 
   public clearLineup() {
     let positions = ['PG', 'SG', 'SF', 'PF', 'C', 'G', 'F', 'UTIL'];
@@ -492,7 +378,7 @@ public trimCategories(): void {
 
 
 public refreshDataSource(): void {
-  this.emitLoadingEventToChild(true);
+  this.playerService.updateLoading(true);
   this.pgDataSource = Array.from(this.dispPG.values()).filter(player => player.active === 'Y');
   this.sgDataSource  = Array.from(this.dispSG.values()).filter(player => player.active  ===  'Y');
   this.sfDataSource  = Array.from(this.dispSF.values()).filter(player => player.active  ===  'Y');
@@ -502,7 +388,7 @@ public refreshDataSource(): void {
   this.fDataSource = Array.from(this.dispF.values()).filter(player => player.active  ===  'Y');
   this.utilDataSource  = Array.from(this.dispUTIL.values()).filter(player => player.active  ===  'Y');
   this.refreshLineup();
-  this.emitLoadingEventToChild(false);
+  this.playerService.updateLoading(false);
 }
 
 public refreshLineup(): void {

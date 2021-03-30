@@ -34,6 +34,9 @@ const player = new mongoose.Schema({
     fgPct: {
         type: Number
     },
+    fgExp: {
+        type: Number
+    },
     threesMade: {
         type: Number
     },
@@ -43,6 +46,9 @@ const player = new mongoose.Schema({
     threePct: {
         type: Number
     },
+    threesExp: {
+        type: Number
+    },
     twosMade: {
         type: Number
     },
@@ -50,6 +56,9 @@ const player = new mongoose.Schema({
         type: Number
     },
     twoPct: {
+        type: Number
+    },
+    twosExp: {
         type: Number
     },
     effFgPct: {
@@ -73,16 +82,31 @@ const player = new mongoose.Schema({
     totRbds: {
         type: Number
     },
+    rbdsExp: {
+        type: Number
+    },
     assists: {
+        type: Number
+    },
+    assistsExp: {
         type: Number
     },
     steals: {
         type: Number
     },
+    stealsExp: {
+        type: Number
+    },
     blocks: {
         type: Number
     },
+    blocksExp: {
+        type: Number
+    },
     turnovers: {
+        type: Number
+    },
+    turnoversExp: {
         type: Number
     },
     pf: {

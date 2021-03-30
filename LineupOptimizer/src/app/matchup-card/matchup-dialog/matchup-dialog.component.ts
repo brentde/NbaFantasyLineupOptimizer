@@ -6,8 +6,6 @@ import { Matchup } from './../../shared/models/Matchup';
 import { Component, OnInit, Inject } from '@angular/core';
 
 
-
-
 @Component({
   selector: 'app-matchup-dialog',
   templateUrl: './matchup-dialog.component.html',
@@ -49,9 +47,6 @@ export class MatchupDialogComponent implements OnInit {
   }
 
   public addPlayer(player: Player){
-    // let newPlayer = new Player();
-    // newPlayer = JSON.parse(JSON.stringify(player));
-
     this.playerService.addPlayer(player);
     this.dialogRef.close("Success");
   }

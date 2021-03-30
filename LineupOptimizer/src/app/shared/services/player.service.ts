@@ -10,8 +10,13 @@ import { Injectable } from '@angular/core';
 export class PlayerService {
 
   private playerSubject: Subject<Player> = new Subject<Player>();
+  private loadingSubject: Subject<boolean> = new Subject<boolean>();
 
   constructor() { }
+
+  public updateLoading(status: boolean): void {
+    this.loadingSubject.next(status);
+  }
 
   public addPlayer(player: Player): void {
     this.playerSubject.next(player);
@@ -19,5 +24,9 @@ export class PlayerService {
 
   getMessage(): Observable<Player> {
     return this.playerSubject.asObservable();
+  }
+
+  getLoadingMessage(): Observable<boolean> {
+    return this.loadingSubject.asObservable();
   }
 }

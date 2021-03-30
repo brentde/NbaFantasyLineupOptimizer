@@ -3,9 +3,6 @@ const dbName = 'LineupOptimizer';
 const dbService = require('./db.service');
 const MatchupSchema = require('./models/Matchup');
 const PlayerSchema = require('./models/Player');
-const { convertActionBinding } = require('@angular/compiler/src/compiler_util/expression_converter');
-const { consoleTestResultHandler } = require('tslint/lib/test');
-
 
 function refreshPlayerData() {
     return new Promise((resolve, reject) => {
@@ -19,7 +16,6 @@ function refreshPlayerData() {
         // Have one table for current player data and another historical data
         try{
             getPlayerData().then(players => {
-                
                 players.forEach(player => {
                     Players.insertOne(player, (err) => {
                         if (err) {
@@ -30,15 +26,15 @@ function refreshPlayerData() {
                         }
                     })
                     
-                    // Will be used to query a players historical data for player card
-                    Historical.insertOne(player, (err) => {
-                        if(err){
-                          console.log(err);
-                          reject();      
-                        } else {
-                         //  console.log(`${player.name} Historical Data Added!`); 
-                        }
-                    })
+                //     // Will be used to query a players historical data for player card
+                //     // Historical.insertOne(player, (err) => {
+                //     //     if(err){
+                //     //       console.log(err);
+                //     //       reject();      
+                //     //     } else {
+                //     //      //  console.log(`${player.name} Historical Data Added!`); 
+                //     //     }
+                //     // })
                 })
 
                 resolve();
@@ -156,12 +152,12 @@ function updateDkData() {
 
                     dkData.positions.split('/').forEach(position => {
                         const playerQuery = {name: dkData.name, team: dkData.team, position: position};
-                        const filter = {$set: {price: dkData.price, active: 'Y'}};
                         let playerPromise_0 = Player.findOne(playerQuery);
                         
                         // console.log(playerQuery);
                         playerPromise_0.then(player_0 => {
                             if(player_0 && player_0.position == position){
+                                const filter = {$set: {ratio: Number(((player_0.expFv/dkData.price) * 1000).toFixed(2)), price: dkData.price, active: 'Y'}};
                                 Player.updateOne(playerQuery, filter, (err) => {
                                     if(err){
                                         console.log(err);
@@ -175,12 +171,14 @@ function updateDkData() {
                                 let playerPromise_1 = Player.findOne({name: dkData.name, team: dkData.team});
                                 playerPromise_1.then(player_1 => {
                                     if(player_1){
+                                        
                                         let newPlayer = new PlayerSchema();
                                         newPlayer = JSON.parse(JSON.stringify(player_1));
                                         newPlayer._id = Math.floor(Math.random() * 1000000000);
                                         newPlayer.position = position;
                                         newPlayer.price = dkData.price;
                                         newPlayer.active = 'Y';
+                                        newPlayer.ratio = Number(((newPlayer.expFv/dkData.price) * 1000).toFixed(2));
                                     
                                         Player.insertOne(newPlayer, (err) => {
                                             if(err){
