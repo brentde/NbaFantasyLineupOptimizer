@@ -12,7 +12,13 @@ export class TopBarComponent implements OnInit {
 
   public matchUps: Matchup[] = [];
 
-  constructor(private mongo: MongodbService) { }
+  constructor(private mongo: MongodbService) {
+
+    // write function which checks on load if scroll event has been triggered
+    // If trigged show left/right arrows
+
+    // arrows have an on click event which scrolls for you
+   }
 
   ngOnInit() {
     this.getMatchups();

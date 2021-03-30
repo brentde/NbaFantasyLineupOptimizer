@@ -1,6 +1,6 @@
-<mat-toolbar class="app-bg-color">
-    <div class="scrolling-wrapper-flexbox mr-1" *ngFor="let matchup of matchUps">
-        <app-matchup-card class="card" [matchup]="matchup"></app-matchup-card>
+<mat-toolbar class="app-bg-color w-100 scrolling-wrapper-flexbox ">
+    <div class="mr-1 card" *ngFor="let matchup of matchUps">
+        <app-matchup-card [matchup]="matchup"></app-matchup-card>
     </div>
 </mat-toolbar>
 

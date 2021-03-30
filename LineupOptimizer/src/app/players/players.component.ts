@@ -1,11 +1,13 @@
+import { PlayerService } from './../shared/services/player.service';
 import { MongodbService } from './../shared/services/mongodb.service';
-import { Component, OnInit, ViewChild, Output, EventEmitter} from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, Output, EventEmitter} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTabGroup } from '@angular/material';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { Player } from '../shared/models/Player';
 import { Matchup } from '../shared/models/Matchup';
 import { Team } from './../shared/models/Team';
+
 
 
 @Component({
@@ -20,11 +22,11 @@ import { Team } from './../shared/models/Team';
     ]),
   ],
 })
-export class PlayersComponent implements OnInit {
+export class PlayersComponent implements OnInit, OnDestroy {
 
   @ViewChild(MatTabGroup, {static: false}) tabGroup: MatTabGroup;
   public loadingSubject: Subject<boolean> = new Subject<boolean>();
-
+  
   selected: boolean = false;
   cur_index: number = 0;
   totalCost: number = 0;
@@ -80,13 +82,30 @@ export class PlayersComponent implements OnInit {
   public players: Player[] = [];
   public teams: Map<string, Team> = new Map<string, Team>();
   public matchups: Map<string, Matchup> = new Map<string, Matchup>();
+
+  private subscriptions: Subscription;
   
-  constructor(private mongoService: MongodbService){}
+  constructor(private mongoService: MongodbService, 
+              private playerService: PlayerService){
+
+      this.subscriptions = this.playerService.getMessage().subscribe(player => {
+        if(player){
+            this.lineupAdd(player);
+        } else {
+          console.log("Player is undefined");
+        }
+      })
+  }
 
   ngOnInit() {
     this.getAllData();
     this.clearLineup();
     this.emitLoadingEventToChild(true);
+    
+  }
+
+  ngOnDestroy(){
+    this.subscriptions.unsubscribe();
   }
 
   public getAllData() {
@@ -491,9 +510,8 @@ public refreshLineup(): void {
 }
 
 
-public lineupAdd(playerData: any): void{
-  let player: Player = playerData.player;
-
+public lineupAdd(player: Player): void{
+ 
   if(this.lineup.size < 9){
     // If position is filled, re-add player to display list
     if(this.lineup.has(player.position)){

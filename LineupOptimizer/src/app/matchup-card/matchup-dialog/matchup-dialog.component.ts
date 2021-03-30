@@ -1,8 +1,10 @@
+import { PlayerService } from './../../shared/services/player.service';
 import { Player } from './../../shared/models/Player';
 import { MongodbService } from './../../shared/services/mongodb.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Matchup } from './../../shared/models/Matchup';
 import { Component, OnInit, Inject } from '@angular/core';
+
 
 
 
@@ -16,12 +18,13 @@ export class MatchupDialogComponent implements OnInit {
   public awayTeamDataSource: Player[];
   public homeTeamDataSource: Player[];
   public Loading: boolean = false;
-  public displayedColumns: string[] = ["Name", "Position", "Salary"];
+  public displayedColumns: string[] = ["Name", "Position", "Salary", "Add_Btn"];
 
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any,
                 private dialogRef: MatDialogRef<MatchupDialogComponent>,
-                private mongo: MongodbService) { 
+                private mongo: MongodbService,
+                private playerService: PlayerService) { 
                 this.matchup = this.data.matchup;
               }
 
@@ -43,5 +46,13 @@ export class MatchupDialogComponent implements OnInit {
           this.Loading = false;
         })
     })
+  }
+
+  public addPlayer(player: Player){
+    // let newPlayer = new Player();
+    // newPlayer = JSON.parse(JSON.stringify(player));
+
+    this.playerService.addPlayer(player);
+    this.dialogRef.close("Success");
   }
 }

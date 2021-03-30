@@ -237,6 +237,7 @@ function getAllActiveByPosition(position){
     const query = {active: 'Y', injured: 'N', position: position};
     return collection.find(query);
 }
+
 function getTeams(){
     return new Promise((resolve, reject) => {
         const colName = 'Team';

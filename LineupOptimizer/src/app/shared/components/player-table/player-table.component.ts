@@ -1,8 +1,10 @@
+import { PlayerService } from './../../services/player.service';
 import { Observable, Subscription } from 'rxjs';
 import { PlayerCardComponent } from './../../../player-card/player-card.component';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Player } from '../../models/Player';
+
 
 
 @Component({
@@ -15,15 +17,15 @@ export class PlayerTableComponent implements OnInit {
   // @Input() dataSource: PlayerData[];
   @Input() dataSource: Player[];
   @Input() loadingEvent: Observable<any>;
-  @Output() addPlayerEvent = new EventEmitter<any>();
-
+  
   public Loading: boolean = true;
   
   public displayedColumns: string[] = ["Name", "Team", "Exp_Fant_Pts", "Salary", "Value", "Add_Btn"]
 
   private loadingEventSubscription: Subscription; 
 
-  constructor(private dialog: MatDialog) { }
+  constructor(private dialog: MatDialog,
+              private playerService: PlayerService) { }
 
   ngOnInit() {
     this.loadingEventSubscription = this.loadingEvent.subscribe(loading => {
@@ -60,6 +62,6 @@ export class PlayerTableComponent implements OnInit {
   }
 
   public addPlayer(player: Player){   
-    this.addPlayerEvent.emit({player})
+    this.playerService.addPlayer(player);
   }
 }
