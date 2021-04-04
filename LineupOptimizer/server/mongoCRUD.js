@@ -25,16 +25,6 @@ function refreshPlayerData() {
                           //  console.log(`${player.name} Updated!`);
                         }
                     })
-                    
-                //     // Will be used to query a players historical data for player card
-                //     // Historical.insertOne(player, (err) => {
-                //     //     if(err){
-                //     //       console.log(err);
-                //     //       reject();      
-                //     //     } else {
-                //     //      //  console.log(`${player.name} Historical Data Added!`); 
-                //     //     }
-                //     // })
                 })
 
                 resolve();

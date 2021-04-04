@@ -1,0 +1,21 @@
+export class PlayerHistoryRecord {
+    date: string = '';
+    oppTeam: string  = '';
+    fg: number = 0.0;
+    fga: number = 0.0;
+    _3p: number = 0.0;
+    _3pa: number = 0.0;
+    _3pPct: number = 0.0;
+    ft: number = 0.0;
+    fta: number = 0.0;
+    ftPct: number = 0.0;
+    orb: number = 0.0;
+    drb: number = 0.0;
+    trb: number = 0.0;
+    ast: number = 0.0;
+    stl: number = 0.0;
+    blk: number = 0.0;
+    tov: number = 0.0;
+    pf: number = 0.0;
+    pts: number = 0.0;
+}

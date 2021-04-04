@@ -26,7 +26,7 @@ export class PlayerTableComponent implements OnInit {
               private playerService: PlayerService) { }
 
   ngOnInit() {
-    this.subscriptions =this.playerService.getLoadingMessage().subscribe(loading => {
+    this.subscriptions = this.playerService.getLoadingMessage().subscribe(loading => {
       this.Loading = loading; 
     })
   }
@@ -35,26 +35,10 @@ export class PlayerTableComponent implements OnInit {
     this.subscriptions.unsubscribe();
   }
 
-  // **********************
-  // Open Player Dialog
-  // ***********************
-
-  // public openPlayerDialog(nba_player: PlayerData) {
-  //   this.dialog.open(PlayerCardComponent, {
-  //     width: '970px',
-  //     height: '180px',
-  //     data: {player: nba_player}
-  //   }).afterClosed().subscribe(() => {})
-  // }
-
-  // public addPlayer(player: PlayerData){   
-  //   this.addPlayerEvent.emit({player})
-  // }
-
   public openPlayerDialog(nbaPlayer: Player) {
     this.dialog.open(PlayerCardComponent, {
-      width: '970px',
-      height: '180px',
+      width: '900px',
+      height: '350px',
       data: {player: nbaPlayer}
     }).afterClosed().subscribe(() => {})
   }

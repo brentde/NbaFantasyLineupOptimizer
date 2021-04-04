@@ -17,20 +17,20 @@
             <mat-spinner *ngIf="Loading" style="margin: 0 auto;"></mat-spinner>
 
             <div *ngIf="!Loading" class="table-styles w-100"> 
-                <table mat-table [dataSource]="awayTeamDataSource" class="mat-elevation-z8 w-95" >
+                <table mat-table [dataSource]="awayTeamDataSource" matSort class="mat-elevation-z8 w-95" >
             
                     <ng-container matColumnDef="Name">
-                    <th mat-header-cell *matHeaderCellDef>Player</th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Player</th>
                     <td mat-cell *matCellDef="let player"> {{player.name}} </td>
                     </ng-container>
                 
                     <ng-container matColumnDef="Position">
-                    <th mat-header-cell *matHeaderCellDef>Team</th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Team</th>
                     <td mat-cell *matCellDef="let player"> {{player.position}} </td>
                     </ng-container>
         
                     <ng-container matColumnDef="Salary">
-                        <th mat-header-cell *matHeaderCellDef>Salary</th>
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header>Salary</th>
                         <td mat-cell *matCellDef="let player"> {{player.price}} </td>
                     </ng-container>
                     

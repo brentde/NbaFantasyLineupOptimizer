@@ -7,6 +7,9 @@ const player = new mongoose.Schema({
     playerId: {
         type: String
     },
+    bbrefId: {
+        type: String
+    },
     creationDate: {
         type: Date
     },

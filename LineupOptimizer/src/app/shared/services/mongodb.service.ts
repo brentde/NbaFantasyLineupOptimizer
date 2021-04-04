@@ -1,9 +1,11 @@
+import { PlayerHistoryRecord } from './../models/PlayerHistoryRecord';
 import { Matchup } from './../models/Matchup';
 import { Team } from './../models/Team';
 import { Player } from './../models/Player';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+
 
 @Injectable({
   providedIn: 'root'
@@ -26,5 +28,11 @@ export class MongodbService {
 
   public getPlayersByTeam(team: string): Observable<Player[]> {
     return this.http.get<Player[]>(`/api/get-players-by-team/${team}`);
+  }
+
+  public getPlayerRecords(id: string): Observable<PlayerHistoryRecord[]> {
+    return this.http.get<PlayerHistoryRecord[]>(`/api/get-player-history`, {
+      params: {"id": id}
+    });
   }
 }

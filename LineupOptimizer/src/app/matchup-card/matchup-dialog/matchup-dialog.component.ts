@@ -3,7 +3,9 @@ import { Player } from './../../shared/models/Player';
 import { MongodbService } from './../../shared/services/mongodb.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Matchup } from './../../shared/models/Matchup';
-import { Component, OnInit, Inject } from '@angular/core';
+import { AfterViewInit, Component, OnInit, Inject, ViewChild } from '@angular/core';
+import {  MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material';
 
 
 @Component({
@@ -11,10 +13,12 @@ import { Component, OnInit, Inject } from '@angular/core';
   templateUrl: './matchup-dialog.component.html',
   styleUrls: ['./matchup-dialog.component.scss']
 })
-export class MatchupDialogComponent implements OnInit {
+export class MatchupDialogComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatSort, {static: false}) sort: MatSort;
+
   public matchup: Matchup;
-  public awayTeamDataSource: Player[];
-  public homeTeamDataSource: Player[];
+  public awayTeamDataSource: MatTableDataSource<Player>;
+  public homeTeamDataSource: MatTableDataSource<Player>;
   public Loading: boolean = false;
   public displayedColumns: string[] = ["Name", "Position", "Salary", "Add_Btn"];
 
@@ -26,8 +30,12 @@ export class MatchupDialogComponent implements OnInit {
                 this.matchup = this.data.matchup;
               }
 
-  ngOnInit() {
+  ngOnInit(){
     this.getPlayersByTeam();
+  }
+
+  ngAfterViewInit() {
+    // this.getPlayersByTeam();
   }
 
   public dialogClose(){
@@ -38,9 +46,13 @@ export class MatchupDialogComponent implements OnInit {
     this.Loading = true;
 
     this.mongo.getPlayersByTeam(this.matchup.away).subscribe(players => {
-        this.awayTeamDataSource = players;
+        this.awayTeamDataSource = new MatTableDataSource(players);
+        this.awayTeamDataSource.sort = this.sort;
+     
         this.mongo.getPlayersByTeam(this.matchup.home).subscribe(players => {
-          this.homeTeamDataSource = players;
+          this.homeTeamDataSource = new MatTableDataSource(players);
+          // this.homeTeamDataSource.sort = this.sort;
+
           this.Loading = false;
         })
     })

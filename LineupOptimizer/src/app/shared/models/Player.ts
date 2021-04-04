@@ -1,5 +1,6 @@
 export class Player {
     _id: number = 0;
+    bbrefId: string = '';
     playerId: string = ''; 
     creationDate: Date;
     name: string = '';

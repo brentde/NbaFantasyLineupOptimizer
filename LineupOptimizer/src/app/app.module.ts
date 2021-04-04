@@ -1,6 +1,7 @@
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { NgxEchartsModule } from 'ngx-echarts';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -22,7 +23,6 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { PlayerTableComponent } from './shared/components/player-table/player-table.component';
 import { MatchupCardComponent } from './matchup-card/matchup-card.component';
 import { MatchupDialogComponent } from './matchup-card/matchup-dialog/matchup-dialog.component';
-
 
 @NgModule({
   declarations: [
@@ -49,7 +49,10 @@ import { MatchupDialogComponent } from './matchup-card/matchup-dialog/matchup-di
     MatCardModule,
     MatGridListModule,
     MatButtonModule,
-    MatDialogModule
+    MatDialogModule,
+    NgxEchartsModule.forRoot({
+      echarts: () => import('echarts'),
+    })
   ],
   providers: [],
   bootstrap: [AppComponent],

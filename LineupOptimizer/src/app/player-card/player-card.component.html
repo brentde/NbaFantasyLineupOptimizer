@@ -1,66 +1,39 @@
-<div mat-dialog-content style="padding-top: 0 !important; padding-bottom: 0 !important;"> 
-    <div style="height: 20%; width: 100%; margin-bottom: 3%;">
-        <mat-icon class="cancel-icon" style="float: right;" (click)="dialogClose()">cancel</mat-icon>
-    </div>
-
-    <div style="height: 77%; width: 100%;">
-        <div style="width: 20%; float: left;">
-            <img class="example-element-diagram" [src]='playerDataSource[0].photo' alt="{{playerDataSource[0].name}} photo">
+<div mat-dialog-content class="main-div w-100 h-100"> 
+    <div class="img-div w-100 h-100">
+        <div class="w-100 h-100">
+            <img [src]='player.photo' alt="{{player.name}} photo">
         </div>
 
-        <div style="width: 80%; float: left;">
-            <table mat-table [dataSource]="playerDataSource" class="w-100">
-                <ng-container matColumnDef="Team">
-                    <th mat-header-cell *matHeaderCellDef  style="position: sticky;">Team</th>
-                    <td mat-cell *matCellDef="let player"> {{player.team}} </td>
-                </ng-container>
+        <div class="stat-div w-100 h-100">
+            <div class="inner-stat-div"><p><b>PPG</b></p><h3>{{player.points}}</h3></div>
+            <div class="inner-stat-div"><p><b>RPG</b></p><h3>{{player.totRbds}}</h3></div>
+            <div class="inner-stat-div"><p><b>APG</b></p><h3>{{player.assists}}</h3></div>
+            <div class="inner-stat-div"><p><b>BPG</b></p><h3>{{player.blocks}}</h3></div>
+            <div class="inner-stat-div"><p><b>SPG</b></p><h3>{{player.steals}}</h3></div>
+            <div class="inner-stat-div"><p><b>TO</b></p><h3>{{player.turnovers}}</h3></div>
+        </div>
+    </div>
 
-                <ng-container matColumnDef="3P">
-                    <th mat-header-cell *matHeaderCellDef  style="position: sticky;">3P</th>
-                    <td mat-cell *matCellDef="let player"> {{player.threesMade}} 
-                            <span appStatColor stat="{{player.threesMade}}" expStat="{{player.threesExp}}"> </span></td>
-                </ng-container>
-
-                <ng-container matColumnDef="2P">
-                    <th mat-header-cell *matHeaderCellDef  style="position: sticky;">2P</th>
-                    <td mat-cell *matCellDef="let player"> {{player.twosMade}} 
-                        <span appStatColor stat="{{player.twosMade}}" expStat="{{player.twosExp}}"> </span></td>
-                </ng-container>
-
-                <ng-container matColumnDef="Rebounds">
-                    <th mat-header-cell *matHeaderCellDef  style="position: sticky;">Rebounds</th>
-                    <td mat-cell *matCellDef="let player"> {{player.totRbds}} 
-                        <span appStatColor stat="{{player.totRbds}}" expStat="{{player.rbdsExp}}"> </span></td>
-                </ng-container>
-
-
-                <ng-container matColumnDef="Assists">
-                    <th mat-header-cell *matHeaderCellDef  style="position: sticky;">Assists</th>
-                    <td mat-cell *matCellDef="let player"> {{player.assists}} 
-                        <span appStatColor stat="{{player.assists}}" expStat="{{player.assistsExp}}"> </span></td>
-                </ng-container>
-
-                <ng-container matColumnDef="Steals">
-                    <th mat-header-cell *matHeaderCellDef  style="position: sticky;">Steals</th>
-                    <td mat-cell *matCellDef="let player"> {{player.steals}} 
-                        <span appStatColor stat="{{player.steals}}" expStat="{{player.stealsExp}}"> </span></td>
-                </ng-container>
-
-                <ng-container matColumnDef="Blocks">
-                    <th mat-header-cell *matHeaderCellDef  style="position: sticky;">Blocks</th>
-                    <td mat-cell *matCellDef="let player"> {{player.blocks}} 
-                        <span appStatColor stat="{{player.blocks}}" expStat="{{player.blocksExp}}"> </span></td>
-                </ng-container>
-
-                <ng-container matColumnDef="Turnovers">
-                    <th mat-header-cell *matHeaderCellDef  style="position: sticky;">Turnovers</th>
-                    <td mat-cell *matCellDef="let player"> {{player.turnovers}} 
-                        <span appStatColor stat="{{player.turnovers}}" expStat="{{player.turnoversExp}}"> </span></td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true;"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            </table>
-        </div> 
+    <div class="w-100 h-100">
+        <mat-tab-group class="w-100 h-100">
+            <mat-tab label="PPG"> 
+                <div echarts [options]="setChartOptions('PPG', ppg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="RPG"> 
+                <div echarts [options]="setChartOptions('RPG', rpg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="APG"> 
+                <div echarts [options]="setChartOptions('APG', apg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="SPG"> 
+                <div echarts [options]="setChartOptions('SPG', spg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="BPG"> 
+                <div echarts [options]="setChartOptions('BPG', bpg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="TO"> 
+                <div echarts [options]="setChartOptions('TO', to)" class="w-100 h-320"></div>
+            </mat-tab>
+        </mat-tab-group>
     </div>
 </div>

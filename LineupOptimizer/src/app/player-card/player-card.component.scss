@@ -1,8 +1,7 @@
-.example-element-diagram {
-  min-width: 90px;
-  padding: 0px;
-  margin: 0px 0;
-  height: 114px;
+img {
+  min-width: 110px;
+  width: 180px;
+  height: 135px;
 }
 
 .mat-column-Team {
@@ -40,4 +39,44 @@
 .cancel-icon:hover{
   color: #3F51B5 !important;
   cursor: pointer;
+}
+
+.main-div {
+  display: grid;
+  grid-template-columns: 20% 80%;
+  grid-template-rows: 100%;
+}
+
+.img-div {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: 47% 53%;
+}
+
+.stat-div {
+  display: grid;
+  grid-template-columns: 33% 33% 33%;
+  grid-template-rows: 50%;
+  row-gap: 2px;
+  column-gap: 2px;
+}
+
+.inner-stat-div {
+  text-align: center;
+  border-radius: 25px;
+  border: 2px solid #3F51B5 !important;
+  overflow: hidden;
+}
+
+.inner-stat-div p {
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
+  background-color: lightgray; 
+  margin: 0 auto;
+  font-size: 12px;
+}
+
+.h-320 {
+  height: 315px !important;
+  margin-top: 10px;
 }

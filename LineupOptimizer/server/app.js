@@ -5,6 +5,8 @@ const dbService = require('./db.service');
 const { refreshPlayerData, refreshTeamData, updateInjuries, updateDkData, 
         getMatchups, getPlayers, getTeams, getPlayersByTeam } = require('./mongoCRUD')
 
+const { getPlayerStats } = require('./webscraping/scrape');
+
 
 // MongoDB Connect
 dbService.connect().then(() => {
@@ -28,11 +30,11 @@ dbService.connect().then(() => {
         })
       })
     } else {
-      updateDkData().then(() => {
-        updateInjuries().then(() => {
-          console.log("Synchronization Complete!");
-        })
-      })
+      // updateDkData().then(() => {
+      //   updateInjuries().then(() => {
+      //     console.log("Synchronization Complete!");
+      //   })
+      // })
      }
   })
 })
@@ -40,25 +42,6 @@ dbService.connect().then(() => {
   console.log("Error: ", err);
   process.exit(1);  
 })
-
-
-// app.get('/get-player', (req, res) => {
-//     getPlayer(req.query.id).then(player => {
-//       res.send(player);
-//     })
-// })
-
-// app.get('/get-all-active-by-position', (req, res) => {
-//   getAllActiveByPosition(req.query.position).then(players => {
-//     res.send(players);
-//   })
-// })
-
-// app.get('/get-team', (req, res) => {
-//   getTeam(req.query.id).then(team => {
-//     res.send(team);
-//   })
-// })
 
 app.get('/get-players', (req, res) => {
   getPlayers().then(players => {
@@ -81,6 +64,12 @@ app.get('/get-teams', (req, res) => {
 app.get('/get-players-by-team/:team', (req, res) => {
   getPlayersByTeam(req.params.team).then(players => {
     res.send(players);
+  })
+})
+
+app.get('/get-player-history', (req, res) => {
+  getPlayerStats(req.query.id).then(records => {
+    res.send(records);
   })
 })
 

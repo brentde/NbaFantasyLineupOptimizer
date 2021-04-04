@@ -5,6 +5,7 @@ const Team = require('../models/Team');
 const DkData = require('../models/DkData');
 const fetch = require('node-fetch');
 var fs = require('fs'); 
+const PlayerHistoryRecord = require('../models/PlayerHistoryRecord')
 
 function fetchPlayerIds() {
   return new Promise((resolve, reject) => {
@@ -22,6 +23,77 @@ function fetchPlayerIds() {
   })
 }
 
+function getPlayerStats(id) {
+  return new Promise((resolve, reject) => {
+
+    axios.get(`https://www.basketball-reference.com/players/b/${id}/gamelog/2021/`).then(response => {
+        const $ = cheerio.load(response.data);
+        const stats = [];
+        const playerHistoryRecords  = []
+        let objIndex = -1;
+        let dataIndex = -1;
+        let record = new PlayerHistoryRecord();
+
+        $('table.row_summable > tbody > tr > td').each((_idx, el) => {
+            stats.push($(el).text());
+        })
+
+        while(dataIndex < stats.length){
+          dataIndex++;
+          objIndex++;
+
+          if(stats[dataIndex] === "Did Not Dress" || stats[dataIndex] === "Inactive" || stats[dataIndex] === "Did Not Play"){
+            objIndex = -1;
+          } else {
+            switch(objIndex){
+              case 1: 
+                record.date = stats[dataIndex];
+                break;
+              case 5:
+                record.oppTeam = stats[dataIndex];
+                break;
+              case 12:
+                record._3p = stats[dataIndex];
+                break;
+              case 20:
+                record.trb = stats[dataIndex];
+                break;
+              case 21:
+                record.ast = stats[dataIndex];
+                break;
+              case 22:
+                  record.stl = stats[dataIndex];
+                  break;
+              case 23:
+                record.blk = stats[dataIndex];
+                break;
+              case 24:
+                record.tov = stats[dataIndex];
+                break;
+              case 25: 
+                record.pf = stats[dataIndex];
+                break;
+              case 26:
+                record.pts = stats[dataIndex];
+                break; 
+              case 28:
+                let newRecord = new PlayerHistoryRecord();
+                newRecord = JSON.parse(JSON.stringify(record));
+                playerHistoryRecords.push(newRecord);
+                objIndex = -1;
+              default:
+                break;
+            }
+          }
+        }
+
+        resolve(playerHistoryRecords);
+      })
+    })
+}
+
+exports.getPlayerStats = getPlayerStats;
+
 function getAllPlayers(teams, matchups, playerIds) {
   return new Promise((resolve, reject) => {
 
@@ -29,13 +101,24 @@ function getAllPlayers(teams, matchups, playerIds) {
         const $ = cheerio.load(response.data);
         const Players = [];
         const playerData = [];
+        const bbrefIds = [];
+        const odds = true;
     
         $('tbody > tr > td').each((_idx, el) => {
           playerData.push($(el).text());
         })
+
+        $('tbody > tr > td > a').each((_idx, el) => {
+            let id = $(el).attr('href').split('/')[3].split('.')[0];
+           
+            if(id !== "2021")
+              bbrefIds.push($(el).attr('href').split('/')[3].split('.')[0]);
+        })
+
     
         let beg = 0;
         let end = 29;
+        let bbInd = 0;
     
         while(beg < playerData.length){
 
@@ -45,6 +128,10 @@ function getAllPlayers(teams, matchups, playerIds) {
           player._id = Math.floor(Math.random() * 1000000000);
           // Set creation date so that we can get latest data
           player.creationDate = new Date();
+
+          player.bbrefId = bbrefIds[bbInd];
+          bbInd++;
+
 
           player.name = playerArr[0];
       
