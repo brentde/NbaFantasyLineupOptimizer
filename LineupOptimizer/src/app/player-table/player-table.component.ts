@@ -1,9 +1,9 @@
-import { PlayerService } from './../../services/player.service';
+import { PlayerService } from '../shared/services/player.service';
 import { Observable, Subscription } from 'rxjs';
-import { PlayerCardComponent } from './../../../player-card/player-card.component';
+import { PlayerCardComponent } from './player-dialog/player-card.component';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Player } from '../../models/Player';
+import { Player } from '../shared/models/Player';
 
 
 

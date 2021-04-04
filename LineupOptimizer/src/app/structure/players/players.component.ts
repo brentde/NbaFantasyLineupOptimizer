@@ -1,12 +1,12 @@
-import { PlayerService } from './../shared/services/player.service';
-import { MongodbService } from './../shared/services/mongodb.service';
+import { PlayerService } from '../../shared/services/player.service';
+import { MongodbService } from '../../shared/services/mongodb.service';
 import { Component, OnInit, OnDestroy, ViewChild, Output, EventEmitter} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTabGroup } from '@angular/material';
 import { Subscription } from 'rxjs';
-import { Player } from '../shared/models/Player';
-import { Matchup } from '../shared/models/Matchup';
-import { Team } from './../shared/models/Team';
+import { Player } from '../../shared/models/Player';
+import { Matchup } from '../../shared/models/Matchup';
+import { Team } from '../../shared/models/Team';
 
 @Component({
   selector: 'app-players',

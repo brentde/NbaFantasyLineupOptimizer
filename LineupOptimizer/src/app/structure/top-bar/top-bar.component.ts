@@ -1,5 +1,5 @@
-import { Matchup } from './../shared/models/Matchup';
-import { MongodbService } from './../shared/services/mongodb.service';
+import { Matchup } from '../../shared/models/Matchup';
+import { MongodbService } from '../../shared/services/mongodb.service';
 import { Component, OnInit } from '@angular/core';
 
 

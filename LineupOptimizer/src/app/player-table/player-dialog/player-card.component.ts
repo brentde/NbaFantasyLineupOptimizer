@@ -1,6 +1,6 @@
-import { PlayerHistoryRecord } from './../shared/models/PlayerHistoryRecord';
-import { MongodbService } from './../shared/services/mongodb.service';
-import { Player } from './../shared/models/Player';
+import { PlayerHistoryRecord } from '../../shared/models/PlayerHistoryRecord';
+import { MongodbService } from '../../shared/services/mongodb.service';
+import { Player } from '../../shared/models/Player';
 import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { DomSanitizer } from '@angular/platform-browser';
