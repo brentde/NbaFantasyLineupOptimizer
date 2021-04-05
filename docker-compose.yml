@@ -1,0 +1,18 @@
+version: "3.9" # specify docker-compose version
+
+# Define the services/containers to be run
+services:
+  angular: # name of the first service
+    build: LineupOptimizer # specify the directory of the Dockerfile
+    ports:
+      - "4200:4200" # specify port forewarding
+    volumes:
+      - ./LineupOptimizer:/app # this will enable changes made to the angular app reflect in the container
+  
+
+  express: #name of the second service
+    build: server # specify the directory of the Dockerfile
+    ports:
+      - "3000:3000" # specify ports forewarding
+    volumes:
+      - ./server:/usr/src/app # this will enable changes made to the angular app reflect in the container

@@ -25,6 +25,7 @@ export class PlayerTableComponent implements OnInit {
   constructor(private dialog: MatDialog,
               private playerService: PlayerService) { }
 
+              
   ngOnInit() {
     this.subscriptions = this.playerService.getLoadingMessage().subscribe(loading => {
       this.Loading = loading; 

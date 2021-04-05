@@ -11,27 +11,28 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class MongodbService {
+  private readonly apiEndpoint = 'http://localhost:3000';
 
   constructor(private http: HttpClient) { }
 
   public getPlayers(): Observable<Player[]> {
-    return this.http.get<Player[]>('api/get-players');
+    return this.http.get<Player[]>(`${this.apiEndpoint}/get-players`);
   };
 
   public getTeams(): Observable<Team[]> {
-    return this.http.get<Team[]>('api/get-teams');
+    return this.http.get<Team[]>(`${this.apiEndpoint}/get-teams`);
   };
 
   public getMatchups(): Observable<Matchup[]> {
-    return this.http.get<Matchup[]>('/api/get-matchups');
+    return this.http.get<Matchup[]>(`${this.apiEndpoint}/get-matchups`);
   }
 
   public getPlayersByTeam(team: string): Observable<Player[]> {
-    return this.http.get<Player[]>(`/api/get-players-by-team/${team}`);
+    return this.http.get<Player[]>(`${this.apiEndpoint}/get-players-by-team/${team}`);
   }
 
   public getPlayerRecords(id: string): Observable<PlayerHistoryRecord[]> {
-    return this.http.get<PlayerHistoryRecord[]>(`/api/get-player-history`, {
+    return this.http.get<PlayerHistoryRecord[]>(`${this.apiEndpoint}/get-player-history`, {
       params: {"id": id}
     });
   }
