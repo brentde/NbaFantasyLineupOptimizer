@@ -13,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule} from '@angular/material/card';
 import { MatGridListModule} from '@angular/material/grid-list';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSortModule }from '@angular/material';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 /* COMPONENTS */
 import { AppComponent } from './app.component';
@@ -55,6 +57,8 @@ import { StatColorDirective } from './shared/directives/stat-color.directive'
     MatGridListModule,
     MatButtonModule,
     MatDialogModule,
+    MatSortModule,
+    MatProgressBarModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts'),
     })
@@ -62,7 +66,8 @@ import { StatColorDirective } from './shared/directives/stat-color.directive'
   providers: [],
   bootstrap: [AppComponent],
   entryComponents: [ PlayerCardComponent, 
-                     MatchupDialogComponent 
+                     MatchupDialogComponent,
+                     TeamCardComponent 
   ]
 })
 export class AppModule { }

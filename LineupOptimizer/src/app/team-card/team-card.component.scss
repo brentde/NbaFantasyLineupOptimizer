@@ -1,0 +1,88 @@
+img {
+    min-width: 110px;
+    width: 160px;
+    height: 135px;
+  }
+  
+  .spinner-styles {
+    margin: 0 auto; 
+    top: 50%;
+    left: 50%;
+}
+
+  .mat-column-Team {
+    width: 12%;
+  }
+  
+  .mat-column-3P {
+    width: 12%;
+  }
+  
+  .mat-column-2P {
+    width: 12%;
+  }
+  
+  .mat-column-Assits {
+    width: 12%;
+  }
+  
+  .mat-column-Rebounds {
+    width: 12%;
+  }
+  
+  .mat-column-Steals {
+    width: 12%;
+  }
+  
+  .mat-column-Blocks {
+    width: 12%;
+  }
+  
+  .mat-column-Turnovers {
+    width: 14%;
+  }
+  
+  .cancel-icon:hover{
+    color: #3F51B5 !important;
+    cursor: pointer;
+  }
+  
+  .main-div {
+    display: grid;
+    grid-template-columns: 20% 80%;
+    grid-template-rows: 100%;
+  }
+  
+  .img-div {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 47% 53%;
+  }
+  
+  .stat-div {
+    display: grid;
+    grid-template-columns: 33% 33% 33%;
+    grid-template-rows: 50%;
+    row-gap: 2px;
+    column-gap: 2px;
+  }
+  
+  .inner-stat-div {
+    text-align: center;
+    border-radius: 25px;
+    border: 2px solid #3F51B5 !important;
+    overflow: hidden;
+  }
+  
+  .inner-stat-div p {
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    background-color: lightgray; 
+    margin: 0 auto;
+    font-size: 12px;
+  }
+  
+  .h-320 {
+    height: 315px !important;
+    margin-top: 10px;
+  }

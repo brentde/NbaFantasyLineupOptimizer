@@ -1,9 +1,13 @@
+import { TeamCardComponent } from './../team-card/team-card.component';
+import { Team } from './../shared/models/Team';
 import { PlayerService } from '../shared/services/player.service';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { PlayerCardComponent } from './player-dialog/player-card.component';
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Player } from '../shared/models/Player';
+
+
 
 
 
@@ -42,6 +46,14 @@ export class PlayerTableComponent implements OnInit {
       height: '350px',
       data: {player: nbaPlayer}
     }).afterClosed().subscribe(() => {})
+  }
+
+  public openTeamDialog(team: string): void{
+    this.dialog.open(TeamCardComponent, {
+      width: '900px',
+      height: '350px',
+      data: {team: team}
+    }).afterClosed().subscribe(() => {});
   }
 
   public addPlayer(player: Player){   

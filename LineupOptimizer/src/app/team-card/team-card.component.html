@@ -1,0 +1,42 @@
+<mat-progress-bar *ngIf="Loading" mode="indeterminate"></mat-progress-bar>
+
+<div mat-dialog-content class="main-div w-100 h-100"> 
+    <div  *ngIf="!Loading" class="img-div w-100 h-100">
+        <div class="w-100 h-100">
+            <img [src]="photoPath" alt="{{team.name}} photo">
+        </div>
+
+        <div class="stat-div w-100 h-100">
+            <div class="inner-stat-div"><p><b>PPG</b></p><h3>{{team.points.toFixed(1)}}</h3></div>
+            <div class="inner-stat-div"><p><b>RPG</b></p><h3>{{team.totRbds.toFixed(1)}}</h3></div>
+            <div class="inner-stat-div"><p><b>APG</b></p><h3>{{team.assists.toFixed(1)}}</h3></div>
+            <div class="inner-stat-div"><p><b>BPG</b></p><h3>{{team.blocks.toFixed(1)}}</h3></div>
+            <div class="inner-stat-div"><p><b>SPG</b></p><h3>{{team.steals.toFixed(1)}}</h3></div>
+            <div class="inner-stat-div"><p><b>TO</b></p><h3>{{team.turnovers.toFixed(1)}}</h3></div>
+        </div>
+    </div>
+
+
+    <div  *ngIf="!Loading" class="w-100 h-100">
+        <mat-tab-group class="w-100 h-100">
+            <mat-tab label="PPG"> 
+                <div echarts [options]="setChartOptions('PPG', ppg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="RPG"> 
+                <div echarts [options]="setChartOptions('RPG', rpg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="APG"> 
+                <div echarts [options]="setChartOptions('APG', apg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="SPG"> 
+                <div echarts [options]="setChartOptions('SPG', spg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="BPG"> 
+                <div echarts [options]="setChartOptions('BPG', bpg)" class="w-100 h-320"></div>
+            </mat-tab>
+            <mat-tab label="TO"> 
+                <div echarts [options]="setChartOptions('TO', to)" class="w-100 h-320"></div>
+            </mat-tab>
+        </mat-tab-group>
+    </div>
+</div>

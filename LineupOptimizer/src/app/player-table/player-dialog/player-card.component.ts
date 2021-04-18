@@ -18,7 +18,7 @@ export interface PlayerDialog {
 })
 
 export class PlayerCardComponent implements OnInit {
-
+  public Loading: boolean = true;
   public player: Player; 
   public playerHistoryRecords: PlayerHistoryRecord[] = [];
   public chartOptions: EChartsOption;
@@ -35,7 +35,7 @@ export class PlayerCardComponent implements OnInit {
               private sanitizer: DomSanitizer,
               private mongo: MongodbService) {
               this.player = this.data.player;
-              this.player.photo = this.sanitizer.bypassSecurityTrustUrl(this.player.photoUrl);
+              
               this.getPlayerRecords();
   }
 
@@ -49,6 +49,9 @@ export class PlayerCardComponent implements OnInit {
     this.mongo.getPlayerRecords(this.data.player.bbrefId).subscribe(records => {
       this.playerHistoryRecords = records;
       this.setDataArrays();
+      this.player.photo = this.sanitizer.bypassSecurityTrustUrl(this.player.photoUrl);
+      if(this.player.photo)
+        this.Loading = false;
     })
   }
 

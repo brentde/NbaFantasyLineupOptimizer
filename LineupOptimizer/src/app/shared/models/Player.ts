@@ -43,5 +43,5 @@ export class Player {
     ratio: number = 0.0;
     active: string = '';
     injured: string = '';
-    photo: any;
+    photo: any = null;
 }

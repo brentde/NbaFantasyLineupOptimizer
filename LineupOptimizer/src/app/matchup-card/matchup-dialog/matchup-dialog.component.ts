@@ -8,20 +8,20 @@ import {  MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material';
 
 
+
 @Component({
   selector: 'app-matchup-dialog',
   templateUrl: './matchup-dialog.component.html',
   styleUrls: ['./matchup-dialog.component.scss']
 })
-export class MatchupDialogComponent implements OnInit, AfterViewInit {
-  @ViewChild(MatSort, {static: false}) sort: MatSort;
-
+export class MatchupDialogComponent implements AfterViewInit {
   public matchup: Matchup;
   public awayTeamDataSource: MatTableDataSource<Player>;
   public homeTeamDataSource: MatTableDataSource<Player>;
-  public Loading: boolean = false;
+  public Loading: boolean = true;
   public displayedColumns: string[] = ["Name", "Position", "Salary", "Add_Btn"];
 
+  @ViewChild(MatSort, {static: false}) sort: MatSort;
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any,
                 private dialogRef: MatDialogRef<MatchupDialogComponent>,
@@ -30,12 +30,8 @@ export class MatchupDialogComponent implements OnInit, AfterViewInit {
                 this.matchup = this.data.matchup;
               }
 
-  ngOnInit(){
-    this.getPlayersByTeam();
-  }
-
   ngAfterViewInit() {
-    // this.getPlayersByTeam();
+    this.getPlayersByTeam();
   }
 
   public dialogClose(){
@@ -43,17 +39,15 @@ export class MatchupDialogComponent implements OnInit, AfterViewInit {
   }
 
   public getPlayersByTeam(): void {
-    this.Loading = true;
-
     this.mongo.getPlayersByTeam(this.matchup.away).subscribe(players => {
         this.awayTeamDataSource = new MatTableDataSource(players);
         this.awayTeamDataSource.sort = this.sort;
      
         this.mongo.getPlayersByTeam(this.matchup.home).subscribe(players => {
           this.homeTeamDataSource = new MatTableDataSource(players);
-          // this.homeTeamDataSource.sort = this.sort;
-
+         // this.homeTeamDataSource.sort = this.sort;
           this.Loading = false;
+
         })
     })
   }

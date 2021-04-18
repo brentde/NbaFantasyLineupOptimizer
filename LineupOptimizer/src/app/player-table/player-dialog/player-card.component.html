@@ -1,4 +1,6 @@
-<div mat-dialog-content class="main-div w-100 h-100"> 
+<mat-progress-bar *ngIf="Loading" mode="indeterminate"></mat-progress-bar>
+
+<div *ngIf="!Loading" mat-dialog-content class="main-div w-100 h-100"> 
     <div class="img-div w-100 h-100">
         <div class="w-100 h-100">
             <img [src]='player.photo' alt="{{player.name}} photo">
