@@ -29,11 +29,18 @@
     </div>
 
     <div class="selection-div-styles" style="height: 90%; max-height: 90%;"> 
+
         <table mat-table [dataSource]="selectionTableDataSource" class="mat-elevation-z8" style="margin-bottom: 1%;">
             <ng-container matColumnDef="L_Name">
             <th mat-header-cell *matHeaderCellDef >Player</th>
             <td mat-cell *matCellDef="let player"> {{player.name}} </td>
             <th mat-footer-cell *matFooterCellDef></th>
+            </ng-container>
+
+            <ng-container matColumnDef="L_Position">
+                <th mat-header-cell *matHeaderCellDef >Position</th>
+                <td mat-cell *matCellDef="let player"> {{player.name ? player.position : ""}} </td>
+                <th mat-footer-cell *matFooterCellDef></th>
             </ng-container>
         
             <ng-container matColumnDef="L_Team">
@@ -43,20 +50,23 @@
             </ng-container>
         
             <ng-container matColumnDef="L_Exp_Fant_Pts">
-                <th mat-header-cell *matHeaderCellDef class="ta-c">Exp Fantasy Points</th>
-                <td mat-cell *matCellDef="let player" class="ta-c"><span *ngIf="player.name !== ''">{{player.expFv}}</span></td>
-                <th mat-footer-cell *matFooterCellDef class="ta-c fs-14">{{this.totalFntsyPts}}</th>
+                <th mat-header-cell *matHeaderCellDef >Exp Ftsy Pts</th>
+                <td mat-cell *matCellDef="let player" ><span *ngIf="player.name !== ''">{{player.expFv}}</span></td>
+                <th mat-footer-cell *matFooterCellDef >{{this.totalFntsyPts}}</th>
             </ng-container>
 
             <ng-container matColumnDef="L_Salary">
-                <th mat-header-cell *matHeaderCellDef class="ta-c">Salary</th>
-                <td mat-cell *matCellDef="let player" class="ta-c"><span *ngIf="player.name !== ''">{{player.price}}</span></td>
-                <th mat-footer-cell *matFooterCellDef class="ta-c fs-14"><span [ngClass]="{'salary-excess': this.totalCost > 50000}">{{this.totalCost}}</span>/50000</th>
+                <th mat-header-cell *matHeaderCellDef>Salary</th>
+                <td mat-cell *matCellDef="let player"><span *ngIf="player.name !== ''">{{player.price}}</span></td>
+                <th mat-footer-cell *matFooterCellDef><span [ngClass]="{'salary-excess': this.totalCost > 50000}">{{this.totalCost}}</span>/50000</th>
             </ng-container>
 
             <ng-container matColumnDef="Remove_Btn">
                 <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let player"><mat-icon *ngIf="player.name !== ''" aria-hidden="false" aria-label="Remove Player" (click)="removePlayer(player)"
+                <td mat-cell *matCellDef="let player"><mat-icon *ngIf="player.name !== ''" 
+                    aria-hidden="false" aria-label="Remove Player" 
+                    matTooltip="Remove player from lineup"
+                    (click)="removePlayer(player)"
                     class="remove-icon">remove_circle</mat-icon>
                 </td>
                 <th mat-footer-cell *matFooterCellDef></th>

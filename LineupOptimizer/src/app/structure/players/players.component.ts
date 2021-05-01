@@ -2,7 +2,7 @@ import { PlayerService } from '../../shared/services/player.service';
 import { MongodbService } from '../../shared/services/mongodb.service';
 import { Component, OnInit, OnDestroy, ViewChild, Output, EventEmitter} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { MatTabGroup } from '@angular/material';
+import { MatTabGroup, MatTableDataSource, MatSort} from '@angular/material';
 import { Subscription } from 'rxjs';
 import { Player } from '../../shared/models/Player';
 import { Matchup } from '../../shared/models/Matchup';
@@ -23,27 +23,29 @@ import { Team } from '../../shared/models/Team';
 export class PlayersComponent implements OnInit, OnDestroy {
 
   @ViewChild(MatTabGroup, {static: false}) tabGroup: MatTabGroup;
+  @ViewChild(MatSort, {static: false}) sort: MatSort;
   
   selected: boolean = false;
   cur_index: number = 0;
   totalCost: number = 0;
   totalFntsyPts: number = 0;
-  selectionDisplayedColumns: string[] = ["L_Name", "L_Team", "L_Exp_Fant_Pts", "L_Salary", "Remove_Btn"]
+  public Loading: boolean = false;
+  selectionDisplayedColumns: string[] = ["L_Name", "L_Position", "L_Team", "L_Exp_Fant_Pts", "L_Salary", "Remove_Btn"]
   dropDownColumns = ['Name', 'Team', 'Price', 'Exp Fantasy Val'];
 
   //*************
   // Table Data
   //************
 
-  pgDataSource: Player[];
-  sgDataSource: Player[];
-  sfDataSource: Player[];
-  pfDataSource: Player[];
-  cDataSource: Player[];
-  gDataSource: Player[];
-  fDataSource: Player[];
-  utilDataSource: Player[];
-  selectionTableDataSource: Player[];
+  pgDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
+  sgDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
+  sfDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
+  pfDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
+  cDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
+  gDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
+  fDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
+  utilDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
+  selectionTableDataSource: MatTableDataSource<Player> = new MatTableDataSource<Player>();
 
   // **********************************************
   // Draftkings Categories for Display Purposes
@@ -182,7 +184,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
   // **********************
 
   public selectLineup(){
-     
+    this.Loading = true;
+    console.log(this.Loading);
     this.trimCategories();
  
      for(const [key, _sg] of this.SG.entries()){
@@ -201,6 +204,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
                          if(this.getExpFantValSum(lineup) > this.getLineupSum()){  
                            for(let i = 0; i < positions.length; i++)
                              this.lineup.set(positions[i], lineup[i]);
+                             
                          }
                        }
                      }
@@ -379,20 +383,20 @@ public trimCategories(): void {
 
 public refreshDataSource(): void {
   this.playerService.updateLoading(true);
-  this.pgDataSource = Array.from(this.dispPG.values()).filter(player => player.active === 'Y');
-  this.sgDataSource  = Array.from(this.dispSG.values()).filter(player => player.active  ===  'Y');
-  this.sfDataSource  = Array.from(this.dispSF.values()).filter(player => player.active  ===  'Y');
-  this.pfDataSource  = Array.from(this.dispPF.values()).filter(player => player.active  ===  'Y');
-  this.cDataSource  = Array.from(this.dispC.values()).filter(player => player.active  ===  'Y');
-  this.gDataSource  = Array.from(this.dispG.values()).filter(player => player.active  ===  'Y');
-  this.fDataSource = Array.from(this.dispF.values()).filter(player => player.active  ===  'Y');
-  this.utilDataSource  = Array.from(this.dispUTIL.values()).filter(player => player.active  ===  'Y');
+  this.pgDataSource.data = Array.from(this.dispPG.values()).filter(player => player.active === 'Y');
+  this.sgDataSource.data  = Array.from(this.dispSG.values()).filter(player => player.active  ===  'Y');
+  this.sfDataSource.data  = Array.from(this.dispSF.values()).filter(player => player.active  ===  'Y');
+  this.pfDataSource.data  = Array.from(this.dispPF.values()).filter(player => player.active  ===  'Y');
+  this.cDataSource.data  = Array.from(this.dispC.values()).filter(player => player.active  ===  'Y');
+  this.gDataSource.data  = Array.from(this.dispG.values()).filter(player => player.active  ===  'Y');
+  this.fDataSource.data = Array.from(this.dispF.values()).filter(player => player.active  ===  'Y');
+  this.utilDataSource.data  = Array.from(this.dispUTIL.values()).filter(player => player.active  ===  'Y');
   this.refreshLineup();
   this.playerService.updateLoading(false);
 }
 
 public refreshLineup(): void {
-  this.selectionTableDataSource =  Array.from(this.lineup.values());
+  this.selectionTableDataSource.data  =  Array.from(this.lineup.values());
 }
 
 
@@ -482,5 +486,6 @@ public lineupAdd(player: Player): void{
   private updateTotals(){
     this.totalCost = this.getSalSum(Array.from(this.lineup.values()));
     this.totalFntsyPts = Number(this.getLineupSum().toFixed(2));
+    this.Loading = false
   }
 }

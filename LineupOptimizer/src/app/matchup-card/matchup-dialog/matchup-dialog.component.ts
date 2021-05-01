@@ -1,12 +1,11 @@
+import { SortService } from './../../shared/services/sort.service';
 import { PlayerService } from './../../shared/services/player.service';
 import { Player } from './../../shared/models/Player';
 import { MongodbService } from './../../shared/services/mongodb.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Matchup } from './../../shared/models/Matchup';
 import { AfterViewInit, Component, OnInit, Inject, ViewChild } from '@angular/core';
-import {  MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material';
-
+import { MatTableDataSource, MatSort } from '@angular/material';
 
 
 @Component({
@@ -26,7 +25,8 @@ export class MatchupDialogComponent implements AfterViewInit {
   constructor(@Inject(MAT_DIALOG_DATA) public data: any,
                 private dialogRef: MatDialogRef<MatchupDialogComponent>,
                 private mongo: MongodbService,
-                private playerService: PlayerService) { 
+                private playerService: PlayerService,
+                public sortService: SortService) { 
                 this.matchup = this.data.matchup;
               }
 

@@ -1,41 +1,41 @@
 <mat-spinner *ngIf="Loading" class="spinner-styles"></mat-spinner>
 
 <div *ngIf="!Loading" class="table-styles"> 
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" >
-     
+    <table mat-table [dataSource]="dataSource" matSort (matSortChange)="sortService.sortData($event, dataSource)" class="mat-elevation-z8" >
+
             <ng-container matColumnDef="Name">
-            <th mat-header-cell *matHeaderCellDef>Player</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Player</th>
             <td mat-cell *matCellDef="let player"><span (click)="openPlayerDialog(player)" class="name">{{player.name}}</span></td>
             </ng-container>
         
             <ng-container matColumnDef="Team">
-            <th mat-header-cell *matHeaderCellDef>Team</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Team</th>
             <td mat-cell *matCellDef="let player"><span (click)="openTeamDialog(player.team)" class="name">{{player.team}}</span></td>
             </ng-container>
+
         
             <ng-container matColumnDef="Exp_Fant_Pts">
-                <th mat-header-cell *matHeaderCellDef>Exp Fantasy Points</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Exp Fantasy Points</th>
                 <td mat-cell *matCellDef="let player"> {{player.expFv}} </td>
             </ng-container>
 
             <ng-container matColumnDef="Salary">
-                <th mat-header-cell *matHeaderCellDef>Salary</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Salary</th>
                 <td mat-cell *matCellDef="let player"> {{player.price}} </td>
             </ng-container>
 
             <ng-container matColumnDef="Value">
-                <th mat-header-cell *matHeaderCellDef>Value</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
                 <td mat-cell *matCellDef="let player"> {{player.ratio}} </td>
             </ng-container>
 
             <ng-container matColumnDef="Add_Btn">
                 <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let player"><mat-icon aria-hidden="false" aria-label="Add Player" class="add-icon" (click)="addPlayer(player)">add_circle</mat-icon>
+                <td mat-cell *matCellDef="let player"><mat-icon aria-hidden="false" aria-label="Add Player" matTooltip="Add player to lineup" class="add-icon" (click)="addPlayer(player)">add_circle</mat-icon>
                 </td>
             </ng-container>
     
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true;"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
 </div>

@@ -15,6 +15,7 @@ import { MatGridListModule} from '@angular/material/grid-list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSortModule }from '@angular/material';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 /* COMPONENTS */
 import { AppComponent } from './app.component';
@@ -58,6 +59,7 @@ import { StatColorDirective } from './shared/directives/stat-color.directive'
     MatButtonModule,
     MatDialogModule,
     MatSortModule,
+    MatTooltipModule,
     MatProgressBarModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts'),

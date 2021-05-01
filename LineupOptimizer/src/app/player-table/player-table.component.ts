@@ -1,15 +1,12 @@
+import { SortService } from './../shared/services/sort.service';
 import { TeamCardComponent } from './../team-card/team-card.component';
-import { Team } from './../shared/models/Team';
 import { PlayerService } from '../shared/services/player.service';
 import { Subscription } from 'rxjs';
 import { PlayerCardComponent } from './player-dialog/player-card.component';
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input} from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Player } from '../shared/models/Player';
-
-
-
-
+import { MatTableDataSource, MatSort } from '@angular/material';
 
 @Component({
   selector: 'app-player-table',
@@ -18,18 +15,18 @@ import { Player } from '../shared/models/Player';
 })
 export class PlayerTableComponent implements OnInit {
 
-  @Input() dataSource: Player[];
-  
+  @Input() dataSource: MatTableDataSource<Player>;
+
   public Loading: boolean = true;
   
   public displayedColumns: string[] = ["Name", "Team", "Exp_Fant_Pts", "Salary", "Value", "Add_Btn"]
 
   private subscriptions: Subscription; 
 
-  constructor(private dialog: MatDialog,
-              private playerService: PlayerService) { }
-
-              
+  constructor(public sortService: SortService,
+              private dialog: MatDialog,
+              private playerService: PlayerService) {}
+        
   ngOnInit() {
     this.subscriptions = this.playerService.getLoadingMessage().subscribe(loading => {
       this.Loading = loading; 
@@ -39,6 +36,8 @@ export class PlayerTableComponent implements OnInit {
   ngOnDestory(){
     this.subscriptions.unsubscribe();
   }
+
+
 
   public openPlayerDialog(nbaPlayer: Player) {
     this.dialog.open(PlayerCardComponent, {
