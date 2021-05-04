@@ -1,4 +1,4 @@
-<mat-spinner *ngIf="Loading" class="spinner-styles"></mat-spinner>
+<mat-spinner *ngIf="Loading" class="spinner-styles" style="margin-top: 200px;"></mat-spinner>
 
 <div *ngIf="!Loading" class="table-styles"> 
     <table mat-table [dataSource]="dataSource" matSort (matSortChange)="sortService.sortData($event, dataSource)" class="mat-elevation-z8" >

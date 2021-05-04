@@ -69,49 +69,32 @@ table {
     width: 100%;
   }
   
-  tr.example-detail-row {
-    height: 0;
-  }
-  
-  tr.example-element-row:not(.example-expanded-row):hover {
-    background: whitesmoke;
-  }
-  
-  tr.example-element-row:not(.example-expanded-row):active {
-    background: #efefef;
-  }
-  
-  .example-element-row td {
-    // border-bottom-width: 0;
-  }
-  
-  .example-element-detail {
-    overflow: hidden;
-    display: flex;
-    grid-template-columns: 100%;
-    grid-template-rows: 100%;
-  }
-  
-//   .example-element-diagram {
-//     min-width: 80px;
-//     padding: 0px;
-//     font-weight: lighter;
-//     margin: 0px 0;
-//     height: 104px;
-//   }
-  
-//   .example-element-symbol {
-//     font-weight: bold;
-//     font-size: 40px;
-//     line-height: normal;
-//   }
-  
-//   .example-element-description {
-//     padding: 16px;
-//   }
-  
-//   .example-element-description-attribution {
-//     opacity: 0.5;
-//   }
+.ta-c{
+    text-align: center;
+}
 
+.err-msg {
+    height: 5%; 
+    width: 95%; 
+    margin-top: 2%; 
+    background-color: red; 
+    opacity: 80%;
+    justify-content: center;
+}
+
+
+.add-success {
+    height: 5%; 
+    width: 95%; 
+    margin-top: 2%; 
+    background-color: #4BB543; 
+    opacity: 75%; 
+    justify-content: center;  
+}
+
+.message {
+    text-align: center; 
+    padding-top: 5px; 
+    color: white;
+}
   

@@ -19,7 +19,7 @@ export class MatchupCardComponent implements OnInit {
 
   public openDialog(): void {
       this.dialog.open(MatchupDialogComponent, {
-        width: '700px',
+        width: '800px',
         height: '650px',
         data: {matchup: this.matchup}
       }).afterClosed().subscribe(() => {})

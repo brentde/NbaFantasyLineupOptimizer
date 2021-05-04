@@ -29,7 +29,8 @@
     </div>
 
     <div class="selection-div-styles" style="height: 90%; max-height: 90%;"> 
-
+        <!-- <mat-progress-bar *ngIf="selectLoading" mode="indeterminate"></mat-progress-bar> -->
+        
         <table mat-table [dataSource]="selectionTableDataSource" class="mat-elevation-z8" style="margin-bottom: 1%;">
             <ng-container matColumnDef="L_Name">
             <th mat-header-cell *matHeaderCellDef >Player</th>
@@ -46,13 +47,13 @@
             <ng-container matColumnDef="L_Team">
             <th mat-header-cell *matHeaderCellDef>Team</th>
             <td mat-cell *matCellDef="let player"> {{player.team}} </td>
-            <th mat-footer-cell *matFooterCellDef class="ta-l fs-14">Totals</th>
+            <th mat-footer-cell *matFooterCellDef class="ta-l">Totals:</th>
             </ng-container>
         
             <ng-container matColumnDef="L_Exp_Fant_Pts">
                 <th mat-header-cell *matHeaderCellDef >Exp Ftsy Pts</th>
                 <td mat-cell *matCellDef="let player" ><span *ngIf="player.name !== ''">{{player.expFv}}</span></td>
-                <th mat-footer-cell *matFooterCellDef >{{this.totalFntsyPts}}</th>
+                <th mat-footer-cell *matFooterCellDef class="ta-l">{{this.totalFntsyPts}}</th>
             </ng-container>
 
             <ng-container matColumnDef="L_Salary">
@@ -81,5 +82,10 @@
             <button mat-raised-button class="app-bg-color" style="float: right; color: white;" (click)="selectLineup()">Auto-select</button>
             <button mat-raised-button color="warn" style="float: right; margin-right: 1%;" (click)="clearLineup()">Clear</button>
         </mat-card>
+
+        <mat-card #fail *ngIf="Error" class="err-msg">
+                <h3 class="message">Error: Unable to select a lineup given salary constraints!</h3>
+        </mat-card>
+
       </div>
 </mat-card>

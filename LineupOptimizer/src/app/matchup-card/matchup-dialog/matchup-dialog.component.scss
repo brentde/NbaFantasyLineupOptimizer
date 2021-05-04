@@ -30,7 +30,12 @@
 }
 
 table {
+    margin-top: 15px !important;
+    display: block;
     margin: 0 auto;
+    height: 350px !important;
+    max-height: 350px !important;
+    overflow-y: scroll;
 }
 
 .w-95 {

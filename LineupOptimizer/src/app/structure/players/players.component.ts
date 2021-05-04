@@ -1,6 +1,6 @@
 import { PlayerService } from '../../shared/services/player.service';
 import { MongodbService } from '../../shared/services/mongodb.service';
-import { Component, OnInit, OnDestroy, ViewChild, Output, EventEmitter} from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTabGroup, MatTableDataSource, MatSort} from '@angular/material';
 import { Subscription } from 'rxjs';
@@ -24,14 +24,18 @@ export class PlayersComponent implements OnInit, OnDestroy {
 
   @ViewChild(MatTabGroup, {static: false}) tabGroup: MatTabGroup;
   @ViewChild(MatSort, {static: false}) sort: MatSort;
+
+
   
   selected: boolean = false;
   cur_index: number = 0;
   totalCost: number = 0;
   totalFntsyPts: number = 0;
-  public Loading: boolean = false;
+  Loading: boolean = false;
+  selectLoading: boolean = false;
+  Error: boolean = false;
+  Added: boolean = false;
   selectionDisplayedColumns: string[] = ["L_Name", "L_Position", "L_Team", "L_Exp_Fant_Pts", "L_Salary", "Remove_Btn"]
-  dropDownColumns = ['Name', 'Team', 'Price', 'Exp Fantasy Val'];
 
   //*************
   // Table Data
@@ -82,10 +86,17 @@ export class PlayersComponent implements OnInit, OnDestroy {
   public teams: Map<string, Team> = new Map<string, Team>();
   public matchups: Map<string, Matchup> = new Map<string, Matchup>();
 
+  public five: boolean = false;
+  public four: boolean = false;
+  public three: boolean = false; 
+  public two: boolean = false;
+  public one: boolean = false;
+
   private subscriptions: Subscription;
   
   constructor(private mongoService: MongodbService, 
-              private playerService: PlayerService){
+              private playerService: PlayerService,
+              private cdr: ChangeDetectorRef){
 
       this.subscriptions = this.playerService.getMessage().subscribe(player => {
         if(player){
@@ -158,6 +169,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
       this.lineup.set(position, player);
     })
 
+    this.Error = false;
+
     this.refreshDataSource();
     this.updateTotals();
   }
@@ -174,6 +187,8 @@ export class PlayersComponent implements OnInit, OnDestroy {
 
     // refresh
     this.refreshDataSource();
+    
+    this.Error = false;
 
     // update total
     this.updateTotals();
@@ -184,9 +199,10 @@ export class PlayersComponent implements OnInit, OnDestroy {
   // **********************
 
   public selectLineup(){
-    this.Loading = true;
-    console.log(this.Loading);
+    this.selectLoading = true;
+    this.cdr.detectChanges()
     this.trimCategories();
+    let lineupFound: boolean = false;
  
      for(const [key, _sg] of this.SG.entries()){
        for(const [key, _pg] of this.PG.entries()){
@@ -204,7 +220,7 @@ export class PlayersComponent implements OnInit, OnDestroy {
                          if(this.getExpFantValSum(lineup) > this.getLineupSum()){  
                            for(let i = 0; i < positions.length; i++)
                              this.lineup.set(positions[i], lineup[i]);
-                             
+                             lineupFound = true;
                          }
                        }
                      }
@@ -216,7 +232,10 @@ export class PlayersComponent implements OnInit, OnDestroy {
          }
        }
      }
- 
+
+     if(!lineupFound)
+      this.Error = true;
+
      this.refreshLineup();
      this.updateTotals();
    } // Select Lineups
@@ -241,7 +260,7 @@ public trimCategories(): void {
   })
 
   salary_filter = ((50000 - this.getSalSum(Array.from(this.lineup.values())))/players_left) + 2000 - (2000 * ((8-players_left)/8));
-  optimValue = 7 + (8 - players_left);
+  optimValue = 8 + (8 - players_left);
   salary_filter = 7500;
 
   if(!this.lineup.has('PG') || (this.lineup.has('PG') && this.lineup.get('PG').name === '')){ 
@@ -395,10 +414,10 @@ public refreshDataSource(): void {
   this.playerService.updateLoading(false);
 }
 
+
 public refreshLineup(): void {
   this.selectionTableDataSource.data  =  Array.from(this.lineup.values());
 }
-
 
 public lineupAdd(player: Player): void{
  
@@ -423,6 +442,8 @@ public lineupAdd(player: Player): void{
     // prevent scroll bug with expansion panel
     this.selected = false;
     
+    // this.fadeMessage(false);
+
     // Move mat-tab to next category
     if(this.tabGroup.selectedIndex != 7){
       this.tabGroup.selectedIndex += 1;
@@ -487,5 +508,7 @@ public lineupAdd(player: Player): void{
     this.totalCost = this.getSalSum(Array.from(this.lineup.values()));
     this.totalFntsyPts = Number(this.getLineupSum().toFixed(2));
     this.Loading = false
+    this.selectLoading = false;
+    this.cdr.detectChanges()
   }
 }
